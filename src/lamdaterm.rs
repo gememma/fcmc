@@ -1,6 +1,7 @@
 use std::fmt;
 use std::fmt::Formatter;
 
+#[derive(Clone, Debug, PartialEq)]
 pub enum LambdaTerm {
     Variable {
         name: Var,

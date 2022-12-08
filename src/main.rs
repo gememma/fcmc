@@ -39,5 +39,19 @@ fn main() {
     };
     println!("{}", example5);
 
-    println!("{}", LambdaTerm::new_num(5));
+    // Church numeral 5
+    println!("\n{}", LambdaTerm::new_num(5));
+    // loop function
+    let loopy_sub = Lambda {
+        arg: "x".to_string(),
+        body: box Apply {
+            t1: box LambdaTerm::new_var("x"),
+            t2: box LambdaTerm::new_var("x"),
+        },
+    };
+    let loopy = box Apply {
+        t1: box loopy_sub.clone(),
+        t2: box loopy_sub.clone(),
+    };
+    println!("\n{}", loopy);
 }
