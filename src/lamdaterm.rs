@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::fmt;
 use std::fmt::Formatter;
 
@@ -24,6 +25,7 @@ impl LambdaTerm {
             name: name.to_string(),
         }
     }
+
     pub fn new_num(numeral: usize) -> Self {
         fn new_num_sub(numeral: usize) -> LambdaTerm {
             if numeral == 0 {
@@ -42,6 +44,23 @@ impl LambdaTerm {
                 body: box new_num_sub(numeral),
             },
         }
+    }
+
+    pub fn get_used_names(&self) -> HashSet<Var> {
+        match self {
+            LambdaTerm::Variable { name } => [name.to_string()].into(),
+            LambdaTerm::Lambda { arg, body } => {
+                let mut names = body.get_used_names();
+                names.insert(arg.to_string());
+                names
+            }
+            LambdaTerm::Apply { t1, t2 } => &t1.get_used_names() | &t2.get_used_names(),
+        }
+    }
+
+    pub fn get_fresh_name(&self) -> &str {
+        let used = self.get_used_names();
+        todo!();
     }
 }
 
