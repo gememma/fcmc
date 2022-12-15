@@ -20,12 +20,14 @@ pub enum LambdaTerm {
 pub type Var = String;
 
 impl LambdaTerm {
+    /// Turn a [`&str`] into a [`Variable`][LambdaTerm::Variable]
     pub fn new_var(name: &str) -> Self {
         LambdaTerm::Variable {
             name: name.to_string(),
         }
     }
 
+    /// Return a [`LambdaTerm`] for the Church encoding of the given [`usize`]
     pub fn new_num(numeral: usize) -> Self {
         fn new_num_sub(numeral: usize) -> LambdaTerm {
             if numeral == 0 {
@@ -46,6 +48,7 @@ impl LambdaTerm {
         }
     }
 
+    /// Return all [`Var`]s that occur in self
     pub fn get_used_names(&self) -> HashSet<Var> {
         match self {
             LambdaTerm::Variable { name } => [name.to_string()].into(),
@@ -58,9 +61,46 @@ impl LambdaTerm {
         }
     }
 
-    pub fn get_fresh_name(&self) -> &str {
+    /// Return a single [`Var`] not returned by calling [`get_used_names()`][Self::get_used_names()]
+    pub fn get_fresh_name(&self) -> Var {
         let used = self.get_used_names();
-        todo!();
+        for c in 'a'..='z' {
+            let var = c.to_string();
+            if !used.contains(&var) {
+                return var;
+            }
+        }
+        for (c, i) in ('a'..='z').into_iter().cycle().zip(1..) {
+            let var = format!("{}{}", c, i);
+            if !used.contains(&var) {
+                return var;
+            }
+        }
+        unreachable!()
+    }
+
+    /// Rename a [`Var`] in self in-place
+    pub fn rename(&mut self, old: &Var, new: &Var) {
+        match self {
+            LambdaTerm::Variable { name } => {
+                if name == old {
+                    *name = new.clone();
+                }
+            }
+            LambdaTerm::Lambda { arg, body } => {
+                if arg != old {
+                    body.rename(old, new);
+                }
+            }
+            LambdaTerm::Apply { t1, t2 } => {
+                t1.rename(old, new);
+                t2.rename(old, new);
+            }
+        }
+    }
+
+    pub fn substitute(&self, _old: &Var, _new: &Var) -> Self {
+        todo!()
     }
 }
 
@@ -99,5 +139,74 @@ impl fmt::Display for LambdaTerm {
                 write!(f, "({}) ({})", t1, t2)
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::LambdaTerm::{Apply, Lambda};
+    use super::*;
+
+    fn example5() -> Box<LambdaTerm> {
+        box Lambda {
+            arg: "a".to_string(),
+            body: box Lambda {
+                arg: "x".to_string(),
+                body: box Apply {
+                    t1: box Apply {
+                        t1: box Lambda {
+                            arg: "y".to_string(),
+                            body: box LambdaTerm::new_var("a"),
+                        },
+                        t2: box LambdaTerm::new_var("x"),
+                    },
+                    t2: box LambdaTerm::new_var("b"),
+                },
+            },
+        }
+    }
+
+    fn example6() -> Box<LambdaTerm> {
+        box Lambda {
+            arg: "a".to_string(),
+            body: box Lambda {
+                arg: "x".to_string(),
+                body: box Apply {
+                    t1: box Apply {
+                        t1: box Lambda {
+                            arg: "y".to_string(),
+                            body: box LambdaTerm::new_var("a"),
+                        },
+                        t2: box LambdaTerm::new_var("x"),
+                    },
+                    t2: box LambdaTerm::new_var("z"),
+                },
+            },
+        }
+    }
+
+    #[test]
+    fn produces_used_names() {
+        let term = example5();
+        assert_eq!(
+            term.get_used_names(),
+            ["x", "b", "y", "a"]
+                .into_iter()
+                .map(|ea| ea.to_string())
+                .collect::<HashSet<Var>>()
+        );
+    }
+
+    #[test]
+    fn produces_fresh_name() {
+        let term = example5();
+        assert_eq!(term.get_fresh_name(), 'c'.to_string());
+    }
+
+    #[test]
+    fn renames() {
+        let mut term = example5();
+        term.rename(&'b'.to_string(), &'z'.to_string());
+        assert_eq!(term, example6());
     }
 }

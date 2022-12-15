@@ -54,5 +54,4 @@ fn main() {
         t2: box loopy_sub.clone(),
     };
     println!("\n{}", loopy);
-    dbg!(loopy.get_used_names());
 }
