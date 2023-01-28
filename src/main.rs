@@ -4,6 +4,7 @@ use crate::lamdaterm::LambdaTerm;
 use crate::LambdaTerm::{Apply, Lambda};
 
 pub mod lamdaterm;
+pub mod pam;
 
 fn main() {
     let example = box LambdaTerm::new_var("a");
