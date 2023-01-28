@@ -61,9 +61,8 @@ impl LambdaTerm {
         }
     }
 
-    /// Return a single [`Var`] not returned by calling [`get_used_names()`][Self::get_used_names()]
-    pub fn get_fresh_name(&self) -> Var {
-        let used = self.get_used_names();
+    /// Return a single [`Var`] not in `used`
+    fn fresh_from_used(used: HashSet<Var>) -> Var {
         for c in 'a'..='z' {
             let var = c.to_string();
             if !used.contains(&var) {
@@ -77,6 +76,12 @@ impl LambdaTerm {
             }
         }
         unreachable!()
+    }
+
+    /// Return a single [`Var`] not returned by calling [`get_used_names()`][Self::get_used_names()]
+    pub fn get_fresh_name(&self) -> Var {
+        let used = self.get_used_names();
+        LambdaTerm::fresh_from_used(used)
     }
 
     /// Rename a [`Var`] in self in-place
@@ -99,8 +104,42 @@ impl LambdaTerm {
         }
     }
 
-    pub fn substitute(&self, _old: &Var, _new: &Var) -> Self {
-        todo!()
+    pub fn renamed(&self, old: &Var, new: &Var) -> Self {
+        let mut t = self.clone();
+        t.rename(old, new);
+        t
+    }
+
+    pub fn substitute(&self, old: &Var, new: &LambdaTerm) -> Self {
+        match self {
+            LambdaTerm::Variable { name } => {
+                if name == old {
+                    new.clone()
+                } else {
+                    self.clone()
+                }
+            }
+            LambdaTerm::Lambda { arg, body } => {
+                if arg == old {
+                    self.clone()
+                } else {
+                    let a = &self.get_used_names() | &new.get_used_names();
+                    let z = LambdaTerm::fresh_from_used(a);
+                    LambdaTerm::Lambda {
+                        arg: z.clone(),
+                        body: Box::new(body.renamed(arg, &z).substitute(old, new)),
+                    }
+                }
+            }
+            LambdaTerm::Apply { t1, t2 } => {
+                let n1 = t1.substitute(old, new);
+                let n2 = t2.substitute(old, new);
+                LambdaTerm::Apply {
+                    t1: Box::new(n1),
+                    t2: Box::new(n2),
+                }
+            }
+        }
     }
 }
 
@@ -185,6 +224,25 @@ mod tests {
         }
     }
 
+    fn example7() -> Box<LambdaTerm> {
+        box Lambda {
+            arg: "c".to_string(),
+            body: box Lambda {
+                arg: "a".to_string(),
+                body: box Apply {
+                    t1: box Apply {
+                        t1: box Lambda {
+                            arg: "a".to_string(),
+                            body: box LambdaTerm::new_var("c"),
+                        },
+                        t2: box LambdaTerm::new_var("a"),
+                    },
+                    t2: box LambdaTerm::new_num(0),
+                },
+            },
+        }
+    }
+
     #[test]
     fn produces_used_names() {
         let term = example5();
@@ -208,5 +266,12 @@ mod tests {
         let mut term = example5();
         term.rename(&'b'.to_string(), &'z'.to_string());
         assert_eq!(term, example6());
+    }
+
+    #[test]
+    fn substitutes() {
+        let zero = LambdaTerm::new_num(0);
+        let term = example5().substitute(&'b'.to_string(), &zero);
+        assert_eq!(term, *example7());
     }
 }
