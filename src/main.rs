@@ -14,7 +14,7 @@ fn main() {
     };
     let example3 = box Lambda {
         arg: "y".to_string(),
-        body: Box::new(LambdaTerm::new_var("y")),
+        body: box LambdaTerm::new_var("y"),
     };
     let example4 = box Apply {
         t1: example2,
