@@ -1,6 +1,7 @@
 #![feature(box_patterns, box_syntax)]
 
 use crate::lamdaterm::LambdaTerm;
+use crate::pam::PState;
 use crate::LambdaTerm::{Apply, Lambda};
 
 pub mod lamdaterm;
@@ -55,4 +56,6 @@ fn main() {
         t2: box loopy_sub.clone(),
     };
     println!("\n{}", loopy);
+
+    println!("{}", PState::state1());
 }
