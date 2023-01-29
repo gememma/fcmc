@@ -48,6 +48,18 @@ impl LambdaTerm {
         }
     }
 
+    /// Return a [`LambdaTerm`] for the Church encoding of the given [`bool`]
+    pub fn new_bool(bool: bool) -> Self {
+        let x = if bool { "a" } else { "b" };
+        LambdaTerm::Lambda {
+            arg: "a".to_string(),
+            body: box LambdaTerm::Lambda {
+                arg: "b".to_string(),
+                body: box LambdaTerm::new_var(x),
+            },
+        }
+    }
+
     /// Return all [`Var`]s that occur in self
     pub fn get_used_names(&self) -> HashSet<Var> {
         match self {
@@ -104,12 +116,14 @@ impl LambdaTerm {
         }
     }
 
+    /// Rename a [`Var`] in self and return the new term
     pub fn renamed(&self, old: &Var, new: &Var) -> Self {
         let mut t = self.clone();
         t.rename(old, new);
         t
     }
 
+    /// Perform a substitution and return the new term
     pub fn substitute(&self, old: &Var, new: &LambdaTerm) -> Self {
         match self {
             LambdaTerm::Variable { name } => {
@@ -123,7 +137,8 @@ impl LambdaTerm {
                 if arg == old {
                     self.clone()
                 } else {
-                    let a = &self.get_used_names() | &new.get_used_names();
+                    let mut a = &self.get_used_names() | &new.get_used_names();
+                    a.insert(old.clone());
                     let z = LambdaTerm::fresh_from_used(a);
                     LambdaTerm::Lambda {
                         arg: z.clone(),

@@ -55,7 +55,21 @@ fn main() {
         t1: box loopy_sub.clone(),
         t2: box loopy_sub.clone(),
     };
-    println!("\n{}", loopy);
+    println!("{}\n", loopy);
 
-    println!("{}", PState::state1());
+    let example8 = Apply {
+        t1: box Apply {
+            t1: box Lambda {
+                arg: "x".to_string(),
+                body: box Lambda {
+                    arg: "y".to_string(),
+                    body: box LambdaTerm::new_var("x"),
+                },
+            },
+            t2: box LambdaTerm::new_bool(true),
+        },
+        t2: box LambdaTerm::new_bool(true),
+    };
+
+    PState::p_run(example8);
 }
