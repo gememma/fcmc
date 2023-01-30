@@ -1,9 +1,11 @@
 #![feature(box_patterns, box_syntax)]
 
+use crate::kam::{Closure, State};
 use crate::lamdaterm::LambdaTerm;
 use crate::pam::PState;
 use crate::LambdaTerm::{Apply, Lambda};
 
+pub mod kam;
 pub mod lamdaterm;
 pub mod pam;
 
@@ -72,4 +74,10 @@ fn main() {
     };
 
     PState::p_run(example8);
+
+    let s = State::state2();
+    println!("{}", s);
+
+    let s2 = State::state4();
+    println!("{}", s2);
 }
