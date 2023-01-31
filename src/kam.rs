@@ -11,7 +11,7 @@ pub struct Closure {
 
 impl Closure {
     pub fn new(term: LambdaTerm, env: Vec<(Var, Closure)>) -> Self {
-        todo!()
+        Closure { term, env }
     }
 
     pub fn closure2() -> Self {
@@ -71,7 +71,7 @@ pub struct State {
 
 impl State {
     pub fn new(closure: Closure, stack: Vec<Closure>) -> Self {
-        todo!()
+        State { closure, stack }
     }
 
     pub fn state2() -> Self {
@@ -103,6 +103,28 @@ impl State {
                     },
                 )],
             }],
+        }
+    }
+
+    pub fn run(term: LambdaTerm) {
+        fn start(t: LambdaTerm) -> State {
+            State {
+                closure: Closure {
+                    term: t,
+                    env: vec![],
+                },
+                stack: vec![],
+            }
+        }
+        fn step() {
+            todo!()
+        }
+        fn final_(s: State) -> bool {
+            match s.closure.term {
+                LambdaTerm::Variable { .. } => s.closure.env.is_empty(),
+                LambdaTerm::Lambda { .. } => true,
+                _ => false,
+            }
         }
     }
 }
