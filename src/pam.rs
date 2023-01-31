@@ -60,7 +60,7 @@ impl PState {
         }
     }
 
-    pub fn p_run(term: LambdaTerm) {
+    pub fn p_run(term: LambdaTerm) -> LambdaTerm {
         fn p_readback(st: &mut PState) -> LambdaTerm {
             let mut t = st.term.clone();
             while !st.stack.is_empty() {
@@ -76,7 +76,9 @@ impl PState {
             println!("{}", s);
             s.p_step();
         }
-        println!("{}", p_readback(&mut s));
+        let ans = p_readback(&mut s);
+        println!("{}", ans);
+        ans
     }
 }
 
@@ -111,6 +113,48 @@ mod tests {
         }
     }
 
+    fn state2() -> PState {
+        PState {
+            term: LambdaTerm::Lambda {
+                arg: "x".to_string(),
+                body: box LambdaTerm::Lambda {
+                    arg: "y".to_string(),
+                    body: box LambdaTerm::new_var("x"),
+                },
+            },
+            stack: vec![],
+        }
+    }
+
+    fn state3() -> PState {
+        PState {
+            term: LambdaTerm::new_var("y"),
+            stack: vec![LambdaTerm::Lambda {
+                arg: "x".to_string(),
+                body: box LambdaTerm::Lambda {
+                    arg: "y".to_string(),
+                    body: box LambdaTerm::new_var("x"),
+                },
+            }],
+        }
+    }
+
+    fn term1() -> LambdaTerm {
+        LambdaTerm::Apply {
+            t1: box LambdaTerm::Apply {
+                t1: box LambdaTerm::Lambda {
+                    arg: "x".to_string(),
+                    body: box LambdaTerm::Lambda {
+                        arg: "y".to_string(),
+                        body: box LambdaTerm::new_var("x"),
+                    },
+                },
+                t2: box LambdaTerm::new_bool(true),
+            },
+            t2: box LambdaTerm::new_bool(false),
+        }
+    }
+
     #[test]
     fn prints() {
         let state = state1();
@@ -120,5 +164,36 @@ mod tests {
         );
     }
 
-    // TODO: finish PAM tests
+    #[test]
+    fn term_into_state() {
+        let created = PState::p_start(term1());
+        assert_eq!(
+            created.to_string(),
+            "(((\\x. \\y. x) (\\a. \\b. a)) (\\a. \\b. b),[*])"
+        );
+    }
+
+    #[test]
+    fn detect_end_state() {
+        assert_eq!(state1().p_final(), false);
+        assert_eq!(PState::p_start(term1()).p_final(), false);
+        assert_eq!(state2().p_final(), true);
+        assert_eq!(state3().p_final(), true);
+    }
+
+    #[test]
+    fn run_pam() {
+        let ans = PState::p_run(term1());
+        assert_eq!(PState::p_start(ans.clone()).p_final(), true);
+        assert_eq!(
+            ans,
+            LambdaTerm::Lambda {
+                arg: "d".to_string(),
+                body: box LambdaTerm::Lambda {
+                    arg: "e".to_string(),
+                    body: box LambdaTerm::new_var("d")
+                }
+            }
+        );
+    }
 }
