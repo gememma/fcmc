@@ -1,4 +1,4 @@
-use crate::lamdaterm::LambdaTerm;
+use crate::lambdaterm::LambdaTerm;
 use std::fmt;
 use std::fmt::Formatter;
 
@@ -76,7 +76,7 @@ impl PState {
             println!("{}", s);
             s.p_step();
         }
-        let ans = p_readback(&mut s);
+        let ans = p_readback(&mut s.clone());
         println!("{}", ans);
         ans
     }

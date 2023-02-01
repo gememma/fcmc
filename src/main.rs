@@ -1,12 +1,12 @@
 #![feature(box_patterns, box_syntax)]
 
 use crate::kam::{Closure, State};
-use crate::lamdaterm::LambdaTerm;
+use crate::lambdaterm::LambdaTerm;
 use crate::pam::PState;
 use crate::LambdaTerm::{Apply, Lambda};
 
 pub mod kam;
-pub mod lamdaterm;
+pub mod lambdaterm;
 pub mod pam;
 
 fn main() {
@@ -70,14 +70,13 @@ fn main() {
             },
             t2: box LambdaTerm::new_bool(true),
         },
-        t2: box LambdaTerm::new_bool(true),
+        t2: box LambdaTerm::new_bool(false),
     };
 
-    PState::p_run(example8);
+    println!("{}", State::state4());
 
-    let s = State::state2();
-    println!("{}", s);
+    // println!("{}", Closure::closure2().retrieve_term());
+    State::run(Closure::closure2().retrieve_term());
 
-    let s2 = State::state4();
-    println!("{}", s2);
+    State::run(example8);
 }

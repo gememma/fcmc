@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use lamdaterm::LambdaTerm;
+use lambdaterm::LambdaTerm;
 
 grammar;
 
