@@ -1,0 +1,41 @@
+use std::str::FromStr;
+use lamdaterm::LambdaTerm;
+
+grammar;
+
+match {
+    r"\\" => LAMBDA,
+    "." => DOT,
+    "(" => L_PAREN,
+    ")" => R_PAREN,
+    r"[a-z][0-9]*" => VAR,
+}
+
+pub LambdaTerm: LambdaTerm = {
+    Var => <>,
+    Lambda => <>,
+    Apply => <>,
+};
+
+Lambda: LambdaTerm = {
+    LAMBDA <VAR> DOT <LambdaTerm> => LambdaTerm {
+        arg: <>.to_string(),
+        body: box <>
+    },
+};
+
+Var: LambdaTerm = {
+    VAR => LambdaTerm::new_var(<>),
+}
+
+Apply: LambdaTerm = {
+    <t1:Var> <t2:Var> => LambdaTerm::Apply {<>},
+    <t1:Var> L_PAREN <t2:Lambda> R_PAREN => LambdaTerm::Apply {<>},
+    <t1:Var> L_PAREN <t2:Apply> R_PAREN => LambdaTerm::Apply {<>},
+    L_PAREN <t1:Lambda> R_PAREN <t2:Var>  => LambdaTerm::Apply {<>},
+    L_PAREN <t1:Lambda> R_PAREN L_PAREN <t2:Lambda> R_PAREN  => LambdaTerm::Apply {<>},
+    L_PAREN <t1:Lambda> R_PAREN L_PAREN <t2:Apply> R_PAREN => LambdaTerm::Apply{<>},
+    <t1:Apply> <t2:Var>  => LambdaTerm::Apply {<>},
+    <t1:Apply> L_PAREN <t2:Lambda> R_PAREN => LambdaTerm::Apply {<>},
+    <t1:Apply> L_PAREN <t2:Apply> R_PAREN  => LambdaTerm::Apply {<>},
+};
