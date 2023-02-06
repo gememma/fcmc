@@ -75,10 +75,43 @@ fn run_rand_examples() {
 
     println!("{}", State::state4());
 
-    // println!("{}", Closure::closure2().retrieve_term());
     State::run(Closure::closure2().retrieve_term());
 
     State::run(example8);
+
+    let term2 = LambdaTerm::Apply {
+        t1: box LambdaTerm::Apply {
+            t1: box LambdaTerm::Lambda {
+                arg: "b".to_string(),
+                body: box LambdaTerm::Apply {
+                    t1: box LambdaTerm::Lambda {
+                        arg: "a".to_string(),
+                        body: box LambdaTerm::Lambda {
+                            arg: "x".to_string(),
+                            body: box LambdaTerm::Apply {
+                                t1: box LambdaTerm::Apply {
+                                    t1: box LambdaTerm::Lambda {
+                                        arg: "y".to_string(),
+                                        body: box LambdaTerm::new_var("a"),
+                                    },
+                                    t2: box LambdaTerm::new_var("x"),
+                                },
+                                t2: box LambdaTerm::new_var("b"),
+                            },
+                        },
+                    },
+                    t2: box LambdaTerm::new_bool(true),
+                },
+            },
+            t2: box LambdaTerm::Lambda {
+                arg: "z".to_string(),
+                body: box LambdaTerm::new_var("z"),
+            },
+        },
+        t2: box LambdaTerm::new_bool(false),
+    };
+
+    println!("{}", PState::p_run(term2));
 }
 
 fn main() {
