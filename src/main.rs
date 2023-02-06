@@ -9,7 +9,7 @@ pub mod kam;
 pub mod lambdaterm;
 pub mod pam;
 
-fn main() {
+fn run_rand_examples() {
     let example = box LambdaTerm::new_var("a");
     let example2 = box Lambda {
         arg: "x".to_string(),
@@ -79,4 +79,8 @@ fn main() {
     State::run(Closure::closure2().retrieve_term());
 
     State::run(example8);
+}
+
+fn main() {
+    run_rand_examples();
 }
