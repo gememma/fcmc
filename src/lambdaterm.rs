@@ -198,69 +198,12 @@ impl fmt::Display for LambdaTerm {
 
 #[cfg(test)]
 mod tests {
-    use super::LambdaTerm::{Apply, Lambda};
+    use super::LambdaTerm;
     use super::*;
-
-    fn example5() -> Box<LambdaTerm> {
-        box Lambda {
-            arg: "a".to_string(),
-            body: box Lambda {
-                arg: "x".to_string(),
-                body: box Apply {
-                    t1: box Apply {
-                        t1: box Lambda {
-                            arg: "y".to_string(),
-                            body: box LambdaTerm::new_var("a"),
-                        },
-                        t2: box LambdaTerm::new_var("x"),
-                    },
-                    t2: box LambdaTerm::new_var("b"),
-                },
-            },
-        }
-    }
-
-    fn example6() -> Box<LambdaTerm> {
-        box Lambda {
-            arg: "a".to_string(),
-            body: box Lambda {
-                arg: "x".to_string(),
-                body: box Apply {
-                    t1: box Apply {
-                        t1: box Lambda {
-                            arg: "y".to_string(),
-                            body: box LambdaTerm::new_var("a"),
-                        },
-                        t2: box LambdaTerm::new_var("x"),
-                    },
-                    t2: box LambdaTerm::new_var("z"),
-                },
-            },
-        }
-    }
-
-    fn example7() -> Box<LambdaTerm> {
-        box Lambda {
-            arg: "c".to_string(),
-            body: box Lambda {
-                arg: "a".to_string(),
-                body: box Apply {
-                    t1: box Apply {
-                        t1: box Lambda {
-                            arg: "a".to_string(),
-                            body: box LambdaTerm::new_var("c"),
-                        },
-                        t2: box LambdaTerm::new_var("a"),
-                    },
-                    t2: box LambdaTerm::new_num(0),
-                },
-            },
-        }
-    }
 
     #[test]
     fn produces_used_names() {
-        let term = example5();
+        let term = LambdaTerm::example5();
         assert_eq!(
             term.get_used_names(),
             ["x", "b", "y", "a"]
@@ -272,21 +215,21 @@ mod tests {
 
     #[test]
     fn produces_fresh_name() {
-        let term = example5();
+        let term = LambdaTerm::example5();
         assert_eq!(term.get_fresh_name(), 'c'.to_string());
     }
 
     #[test]
     fn renames() {
-        let mut term = example5();
+        let mut term = LambdaTerm::example5();
         term.rename(&'b'.to_string(), &'z'.to_string());
-        assert_eq!(term, example6());
+        assert_eq!(term, LambdaTerm::example6());
     }
 
     #[test]
     fn substitutes() {
         let zero = LambdaTerm::new_num(0);
-        let term = example5().substitute(&'b'.to_string(), &zero);
-        assert_eq!(term, *example7());
+        let term = LambdaTerm::example5().substitute(&'b'.to_string(), &zero);
+        assert_eq!(term, *LambdaTerm::example7());
     }
 }

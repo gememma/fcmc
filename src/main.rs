@@ -5,6 +5,7 @@ use crate::lambdaterm::LambdaTerm;
 use crate::pam::PState;
 use crate::LambdaTerm::{Apply, Lambda};
 
+pub mod examples;
 pub mod kam;
 pub mod lambdaterm;
 pub mod pam;

@@ -9,7 +9,11 @@ pub struct PState {
 }
 
 impl PState {
-    pub fn p_start(n: LambdaTerm) -> PState {
+    pub fn new(term: LambdaTerm, stack: Vec<LambdaTerm>) -> Self {
+        PState { term, stack }
+    }
+
+    pub fn p_start(n: LambdaTerm) -> Self {
         PState {
             term: n,
             stack: vec![],
@@ -87,64 +91,9 @@ impl fmt::Display for PState {
 mod tests {
     use crate::{LambdaTerm, PState};
 
-    fn state1() -> PState {
-        PState {
-            term: LambdaTerm::Lambda {
-                arg: "x".to_string(),
-                body: box LambdaTerm::Lambda {
-                    arg: "y".to_string(),
-                    body: box LambdaTerm::new_var("x"),
-                },
-            },
-            stack: vec![LambdaTerm::new_bool(false), LambdaTerm::new_bool(true)],
-        }
-    }
-
-    fn state2() -> PState {
-        PState {
-            term: LambdaTerm::Lambda {
-                arg: "x".to_string(),
-                body: box LambdaTerm::Lambda {
-                    arg: "y".to_string(),
-                    body: box LambdaTerm::new_var("x"),
-                },
-            },
-            stack: vec![],
-        }
-    }
-
-    fn state3() -> PState {
-        PState {
-            term: LambdaTerm::new_var("y"),
-            stack: vec![LambdaTerm::Lambda {
-                arg: "x".to_string(),
-                body: box LambdaTerm::Lambda {
-                    arg: "y".to_string(),
-                    body: box LambdaTerm::new_var("x"),
-                },
-            }],
-        }
-    }
-
-    fn term1() -> LambdaTerm {
-        LambdaTerm::Apply {
-            t1: box LambdaTerm::Apply {
-                t1: box LambdaTerm::Lambda {
-                    arg: "x".to_string(),
-                    body: box LambdaTerm::Lambda {
-                        arg: "y".to_string(),
-                        body: box LambdaTerm::new_var("x"),
-                    },
-                },
-                t2: box LambdaTerm::new_bool(true),
-            },
-            t2: box LambdaTerm::new_bool(false),
-        }
-    }
-
     #[test]
     fn prints() {
-        let state = state1();
+        let state = PState::state1();
         assert_eq!(
             state.to_string(),
             "(\\x. \\y. x, [\\a. \\b. a, \\a. \\b. b, *])"
@@ -153,7 +102,7 @@ mod tests {
 
     #[test]
     fn term_into_state() {
-        let created = PState::p_start(term1());
+        let created = PState::p_start(LambdaTerm::term1());
         assert_eq!(
             created.to_string(),
             "(((\\x. \\y. x) (\\a. \\b. a)) (\\a. \\b. b),[*])"
@@ -162,15 +111,15 @@ mod tests {
 
     #[test]
     fn detect_end_state() {
-        assert_eq!(state1().p_final(), false);
-        assert_eq!(PState::p_start(term1()).p_final(), false);
-        assert_eq!(state2().p_final(), true);
-        assert_eq!(state3().p_final(), true);
+        assert_eq!(PState::state1().p_final(), false);
+        assert_eq!(PState::p_start(LambdaTerm::term1()).p_final(), false);
+        assert_eq!(PState::state2().p_final(), true);
+        assert_eq!(PState::state3().p_final(), true);
     }
 
     #[test]
     fn run_pam() {
-        let ans = PState::p_run(term1());
+        let ans = PState::p_run(LambdaTerm::term1());
         assert_eq!(PState::p_start(ans.clone()).p_final(), true);
         assert_eq!(
             ans,

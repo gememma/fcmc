@@ -44,38 +44,6 @@ impl Closure {
             },
         }
     }
-
-    pub fn closure2() -> Self {
-        Closure {
-            term: LambdaTerm::Apply {
-                t1: box LambdaTerm::Lambda {
-                    arg: "x".to_string(),
-                    body: box LambdaTerm::new_var("x"),
-                },
-                t2: box LambdaTerm::new_var("y"),
-            },
-            env: vec![(
-                "y".to_string(),
-                Closure {
-                    term: LambdaTerm::Lambda {
-                        arg: "z".to_string(),
-                        body: box LambdaTerm::new_var("z"),
-                    },
-                    env: vec![],
-                },
-            )],
-        }
-    }
-
-    pub fn closure4() -> Self {
-        Closure {
-            term: LambdaTerm::Lambda {
-                arg: "y".to_string(),
-                body: box LambdaTerm::new_var("x"),
-            },
-            env: vec![],
-        }
-    }
 }
 
 impl fmt::Display for Closure {
@@ -102,35 +70,6 @@ pub struct State {
 impl State {
     pub fn new(closure: Closure, stack: Vec<Closure>) -> Self {
         State { closure, stack }
-    }
-
-    pub fn state2() -> Self {
-        State::new(Closure::closure2(), vec![])
-    }
-
-    pub fn state4() -> Self {
-        State::new(
-            Closure::closure4(),
-            vec![Closure::new(
-                LambdaTerm::new_var("z"),
-                vec![(
-                    "z".to_string(),
-                    Closure {
-                        term: LambdaTerm::Lambda {
-                            arg: "a".to_string(),
-                            body: box LambdaTerm::new_var("b"),
-                        },
-                        env: vec![(
-                            "b".to_string(),
-                            Closure {
-                                term: LambdaTerm::new_var("b"),
-                                env: vec![],
-                            },
-                        )],
-                    },
-                )],
-            )],
-        )
     }
 
     fn start(t: LambdaTerm) -> State {
@@ -218,59 +157,9 @@ mod tests {
     use crate::kam::{Closure, State};
     use crate::lambdaterm::LambdaTerm;
 
-    fn term1() -> LambdaTerm {
-        LambdaTerm::Apply {
-            t1: box LambdaTerm::Apply {
-                t1: box LambdaTerm::Lambda {
-                    arg: "x".to_string(),
-                    body: box LambdaTerm::Lambda {
-                        arg: "y".to_string(),
-                        body: box LambdaTerm::new_var("x"),
-                    },
-                },
-                t2: box LambdaTerm::new_bool(true),
-            },
-            t2: box LambdaTerm::new_bool(false),
-        }
-    }
-
-    fn term2() -> LambdaTerm {
-        LambdaTerm::Apply {
-            t1: box LambdaTerm::Apply {
-                t1: box LambdaTerm::Lambda {
-                    arg: "b".to_string(),
-                    body: box LambdaTerm::Apply {
-                        t1: box LambdaTerm::Lambda {
-                            arg: "a".to_string(),
-                            body: box LambdaTerm::Lambda {
-                                arg: "x".to_string(),
-                                body: box LambdaTerm::Apply {
-                                    t1: box LambdaTerm::Apply {
-                                        t1: box LambdaTerm::Lambda {
-                                            arg: "y".to_string(),
-                                            body: box LambdaTerm::new_var("a"),
-                                        },
-                                        t2: box LambdaTerm::new_var("x"),
-                                    },
-                                    t2: box LambdaTerm::new_var("b"),
-                                },
-                            },
-                        },
-                        t2: box LambdaTerm::new_bool(true),
-                    },
-                },
-                t2: box LambdaTerm::Lambda {
-                    arg: "z".to_string(),
-                    body: box LambdaTerm::new_var("z"),
-                },
-            },
-            t2: box LambdaTerm::new_bool(false),
-        }
-    }
-
     #[test]
     fn prints_state() {
-        let s = State::start(term1());
+        let s = State::start(LambdaTerm::term1());
         assert_eq!(
             s.to_string(),
             "(((\\x. \\y. x) (\\a. \\b. a)) (\\a. \\b. b), [], [])"
@@ -324,14 +213,14 @@ mod tests {
 
     #[test]
     fn term_into_state() {
-        let s = State::start(term1());
-        let ans = State::new(Closure::new(term1(), vec![]), vec![]);
+        let s = State::start(LambdaTerm::term1());
+        let ans = State::new(Closure::new(LambdaTerm::term1(), vec![]), vec![]);
         assert_eq!(s, ans);
     }
 
     #[test]
     fn detect_end_state() {
-        let s = State::start(term1());
+        let s = State::start(LambdaTerm::term1());
         let s2 = State::new(
             Closure::new(
                 LambdaTerm::Lambda {
@@ -630,13 +519,13 @@ mod tests {
 
     #[test]
     fn run_term1() {
-        let s = State::run(term1());
+        let s = State::run(LambdaTerm::term1());
         assert_eq!(LambdaTerm::new_bool(true).to_string(), s.to_string());
     }
 
     #[test]
     fn run_term2() {
-        let s = State::run(term2());
+        let s = State::run(LambdaTerm::term2());
         let s2 = LambdaTerm::Lambda {
             arg: "b".to_string(),
             body: box LambdaTerm::Lambda {
