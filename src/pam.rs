@@ -9,19 +9,6 @@ pub struct PState {
 }
 
 impl PState {
-    pub fn state1() -> PState {
-        PState {
-            term: LambdaTerm::Lambda {
-                arg: "x".to_string(),
-                body: box LambdaTerm::Lambda {
-                    arg: "y".to_string(),
-                    body: box LambdaTerm::new_var("x"),
-                },
-            },
-            stack: vec![LambdaTerm::new_bool(false), LambdaTerm::new_bool(true)],
-        }
-    }
-
     pub fn p_start(n: LambdaTerm) -> PState {
         PState {
             term: n,
