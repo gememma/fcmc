@@ -1,5 +1,4 @@
-use std::str::FromStr;
-use lambdaterm::LambdaTerm;
+use crate::lambdaterm::LambdaTerm;
 
 grammar;
 
@@ -15,12 +14,15 @@ pub LambdaTerm: LambdaTerm = {
     Var => <>,
     Lambda => <>,
     Apply => <>,
+    L_PAREN <Var> R_PAREN => <>,
+    L_PAREN <Lambda> R_PAREN => <>,
+    L_PAREN <Apply> R_PAREN => <>,
 };
 
 Lambda: LambdaTerm = {
-    LAMBDA <VAR> DOT <LambdaTerm> => LambdaTerm {
-        arg: <>.to_string(),
-        body: box <>
+    LAMBDA <v:VAR> DOT <t:LambdaTerm> => LambdaTerm::Lambda {
+        arg: v.to_string(),
+        body: box t
     },
 };
 
@@ -29,13 +31,13 @@ Var: LambdaTerm = {
 }
 
 Apply: LambdaTerm = {
-    <t1:Var> <t2:Var> => LambdaTerm::Apply {<>},
-    <t1:Var> L_PAREN <t2:Lambda> R_PAREN => LambdaTerm::Apply {<>},
-    <t1:Var> L_PAREN <t2:Apply> R_PAREN => LambdaTerm::Apply {<>},
-    L_PAREN <t1:Lambda> R_PAREN <t2:Var>  => LambdaTerm::Apply {<>},
-    L_PAREN <t1:Lambda> R_PAREN L_PAREN <t2:Lambda> R_PAREN  => LambdaTerm::Apply {<>},
-    L_PAREN <t1:Lambda> R_PAREN L_PAREN <t2:Apply> R_PAREN => LambdaTerm::Apply{<>},
-    <t1:Apply> <t2:Var>  => LambdaTerm::Apply {<>},
-    <t1:Apply> L_PAREN <t2:Lambda> R_PAREN => LambdaTerm::Apply {<>},
-    <t1:Apply> L_PAREN <t2:Apply> R_PAREN  => LambdaTerm::Apply {<>},
+    <t1:Var> <t2:Var> => LambdaTerm::Apply {t1: box t1, t2: box t2},
+    <t1:Var> L_PAREN <t2:Lambda> R_PAREN => LambdaTerm::Apply {t1: box t1, t2: box t2},
+    <t1:Var> L_PAREN <t2:Apply> R_PAREN => LambdaTerm::Apply {t1: box t1, t2: box t2},
+    L_PAREN <t1:Lambda> R_PAREN <t2:Var>  => LambdaTerm::Apply {t1: box t1, t2: box t2},
+    L_PAREN <t1:Lambda> R_PAREN L_PAREN <t2:Lambda> R_PAREN  => LambdaTerm::Apply {t1: box t1, t2: box t2},
+    L_PAREN <t1:Lambda> R_PAREN L_PAREN <t2:Apply> R_PAREN => LambdaTerm::Apply {t1: box t1, t2: box t2},
+    <t1:Apply> <t2:Var>  => LambdaTerm::Apply {t1: box t1, t2: box t2},
+    <t1:Apply> L_PAREN <t2:Lambda> R_PAREN => LambdaTerm::Apply {t1: box t1, t2: box t2},
+    <t1:Apply> L_PAREN <t2:Apply> R_PAREN  => LambdaTerm::Apply {t1: box t1, t2: box t2},
 };

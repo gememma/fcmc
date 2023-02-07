@@ -1,15 +1,21 @@
 #![feature(box_patterns, box_syntax)]
+extern crate lalrpop_util;
 
+use crate::fcmc::LambdaTermParser;
 use crate::kam::{Closure, State};
 use crate::lambdaterm::LambdaTerm;
 use crate::pam::PState;
 use crate::LambdaTerm::{Apply, Lambda};
+use lalrpop_util::lalrpop_mod;
 
 pub mod examples;
 pub mod kam;
 pub mod lambdaterm;
 pub mod pam;
 
+lalrpop_mod!(pub fcmc);
+
+#[allow(dead_code)]
 fn run_rand_examples() {
     let example = box LambdaTerm::new_var("a");
     let example2 = box Lambda {
@@ -116,5 +122,11 @@ fn run_rand_examples() {
 }
 
 fn main() {
-    run_rand_examples();
+    // run_rand_examples();
+    let parser = LambdaTermParser::new();
+    let input = r#"(\b. (\a. \x. (\y. a) x b) (\a. \b. a)) (\z. z) (\a. \b. b)"#;
+    let output: LambdaTerm = parser.parse(input).expect("");
+    println!("{:#?}", output);
+    println!("{}", output);
+    assert_eq!(output, LambdaTerm::term2());
 }

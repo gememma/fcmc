@@ -20,7 +20,7 @@ impl LambdaTerm {
         }
     }
 
-    /// ((\b. (\a. \x. (\y. a) x b) (\a. \b. a)) (\z. z) (\a. \b. b)
+    /// (\b. (\a. \x. (\y. a) x b) (\a. \b. a)) (\z. z) (\a. \b. b)
     pub fn term2() -> Self {
         LambdaTerm::Apply {
             t1: box LambdaTerm::Apply {
