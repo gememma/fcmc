@@ -74,7 +74,7 @@ impl LambdaTerm {
     }
 
     /// Return a single [`Var`] not in `used`
-    fn fresh_from_used(used: HashSet<Var>) -> Var {
+    pub fn fresh_from_used(used: HashSet<Var>) -> Var {
         for c in 'a'..='z' {
             let var = c.to_string();
             if !used.contains(&var) {

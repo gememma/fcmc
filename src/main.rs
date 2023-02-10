@@ -12,6 +12,7 @@ pub mod examples;
 pub mod kam;
 pub mod lambdaterm;
 pub mod pam;
+pub mod sam;
 
 lalrpop_mod!(pub fcmc);
 
@@ -129,4 +130,5 @@ fn main() {
     println!("{:#?}", output);
     println!("{}", output);
     assert_eq!(output, LambdaTerm::term2());
+    State::run(output);
 }
