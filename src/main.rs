@@ -5,6 +5,7 @@ use crate::fcmc::LambdaTermParser;
 use crate::kam::{Closure, State};
 use crate::lambdaterm::LambdaTerm;
 use crate::pam::PState;
+use crate::sam::{SClosure, SLambdaTerm, SState};
 use crate::LambdaTerm::{Apply, Lambda};
 use lalrpop_util::lalrpop_mod;
 
@@ -120,15 +121,21 @@ fn run_rand_examples() {
     };
 
     println!("{}", PState::p_run(term2));
+
+    // sequential calculus
+    println!("{}", SLambdaTerm::term1());
+    println!("{}", SLambdaTerm::term2());
+    println!("{}", SLambdaTerm::term3());
 }
 
 fn main() {
-    // run_rand_examples();
-    let parser = LambdaTermParser::new();
-    let input = r#"(\b. (\a. \x. (\y. a) x b) (\a. \b. a)) (\z. z) (\a. \b. b)"#;
-    let output: LambdaTerm = parser.parse(input).expect("");
-    println!("{:#?}", output);
-    println!("{}", output);
-    assert_eq!(output, LambdaTerm::term2());
-    State::run(output);
+    run_rand_examples();
+
+    // let parser = LambdaTermParser::new();
+    // let input = r#"(\b. (\a. \x. (\y. a) x b) (\a. \b. a)) (\z. z) (\a. \b. b)"#;
+    // let output: LambdaTerm = parser.parse(input).expect("");
+    // println!("{:#?}", output);
+    // println!("{}", output);
+    // assert_eq!(output, LambdaTerm::term2());
+    // State::run(output);
 }

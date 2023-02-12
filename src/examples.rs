@@ -1,6 +1,8 @@
 use crate::kam::{Closure, State};
 use crate::lambdaterm::LambdaTerm;
 use crate::pam::PState;
+use crate::sam::SLambdaTerm::{Pop, Push, Skip, Variable};
+use crate::sam::{SClosure, SLambdaTerm, SState};
 
 impl LambdaTerm {
     /// (\x. \y. x) (\a. \b. a) (\a. \b. b)
@@ -222,6 +224,87 @@ impl State {
                     ),
                 )],
             )],
+        )
+    }
+}
+
+impl SLambdaTerm {
+    pub fn term1() -> Self {
+        Pop {
+            arg: "x".to_string(),
+            next: box Push {
+                term: box Variable {
+                    name: "x".to_string(),
+                    next: box Skip,
+                },
+                next: box Push {
+                    term: box Variable {
+                        name: "x".to_string(),
+                        next: box Skip,
+                    },
+                    next: box Skip,
+                },
+            },
+        }
+    }
+    pub fn term2() -> Self {
+        Pop {
+            arg: "x".to_string(),
+            next: box Pop {
+                arg: "y".to_string(),
+                next: box Skip,
+            },
+        }
+    }
+    pub fn term3() -> Self {
+        Push {
+            term: box Pop {
+                arg: "x".to_string(),
+                next: box Push {
+                    term: box Variable {
+                        name: "x".to_string(),
+                        next: box Skip,
+                    },
+                    next: box Skip,
+                },
+            },
+            next: box Pop {
+                arg: "f".to_string(),
+                next: box Variable {
+                    name: "f".to_string(),
+                    next: box Variable {
+                        name: "f".to_string(),
+                        next: box Variable {
+                            name: "f".to_string(),
+                            next: box Skip,
+                        },
+                    },
+                },
+            },
+        }
+    }
+}
+
+impl SClosure {
+    pub fn closure1() -> Self {
+        SClosure::new(
+            SLambdaTerm::term3(),
+            vec![("y".to_string(), SClosure::new(SLambdaTerm::term3(), vec![]))],
+        )
+    }
+    pub fn closure2() -> Self {
+        SClosure::new(
+            SLambdaTerm::term2(),
+            vec![("y".to_string(), SClosure::new(SLambdaTerm::term1(), vec![]))],
+        )
+    }
+}
+
+impl SState {
+    pub fn state1() -> Self {
+        SState::new(
+            SClosure::closure1(),
+            vec![SClosure::closure2(), SClosure::closure1()],
         )
     }
 }
