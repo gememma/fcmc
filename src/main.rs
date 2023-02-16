@@ -126,10 +126,14 @@ fn run_rand_examples() {
     println!("{}", SLambdaTerm::term1());
     println!("{}", SLambdaTerm::term2());
     println!("{}", SLambdaTerm::term3());
+    SState::run(SLambdaTerm::term3());
 }
 
 fn main() {
-    run_rand_examples();
+    // run_rand_examples();
+
+    println!("{}", SLambdaTerm::term3());
+    SState::run(SLambdaTerm::term3());
 
     // let parser = LambdaTermParser::new();
     // let input = r#"(\b. (\a. \x. (\y. a) x b) (\a. \b. a)) (\z. z) (\a. \b. b)"#;

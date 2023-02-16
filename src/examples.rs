@@ -1,7 +1,7 @@
 use crate::kam::{Closure, State};
 use crate::lambdaterm::LambdaTerm;
 use crate::pam::PState;
-use crate::sam::SLambdaTerm::{Pop, Push, Skip, Variable};
+use crate::sam::SLambdaTerm::{Pop, Push, Seq, Skip, Variable};
 use crate::sam::{SClosure, SLambdaTerm, SState};
 
 impl LambdaTerm {
@@ -235,12 +235,10 @@ impl SLambdaTerm {
             next: box Push {
                 term: box Variable {
                     name: "x".to_string(),
-                    next: box Skip,
                 },
                 next: box Push {
                     term: box Variable {
                         name: "x".to_string(),
-                        next: box Skip,
                     },
                     next: box Skip,
                 },
@@ -263,19 +261,24 @@ impl SLambdaTerm {
                 next: box Push {
                     term: box Variable {
                         name: "x".to_string(),
-                        next: box Skip,
                     },
                     next: box Skip,
                 },
             },
             next: box Pop {
                 arg: "f".to_string(),
-                next: box Variable {
-                    name: "f".to_string(),
-                    next: box Variable {
+                next: box Seq {
+                    term: box Variable {
                         name: "f".to_string(),
-                        next: box Variable {
+                    },
+                    next: box Seq {
+                        term: box Variable {
                             name: "f".to_string(),
+                        },
+                        next: box Seq {
+                            term: box Variable {
+                                name: "f".to_string(),
+                            },
                             next: box Skip,
                         },
                     },
