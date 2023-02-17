@@ -7,6 +7,7 @@ use crate::lambdaterm::LambdaTerm;
 use crate::pam::PState;
 use crate::sam::{SLambdaTerm, SState};
 use crate::LambdaTerm::{Apply, Lambda};
+use clap::Parser;
 use lalrpop_util::lalrpop_mod;
 
 pub mod examples;
@@ -129,10 +130,17 @@ fn run_misc_examples() {
     SState::run(SLambdaTerm::term3());
 }
 
+#[derive(Parser)]
+struct Args {
+    /// Raw term to run
+    input: String,
+}
+
 pub fn run_parser() {
+    let input = Args::parse().input;
+    // let input = r#"(\b. (\a. \x. (\y. a) x b) (\a. \b. a)) (\z. z) (\a. \b. b)"#;
     let parser = LambdaTermParser::new();
-    let input = r#"(\b. (\a. \x. (\y. a) x b) (\a. \b. a)) (\z. z) (\a. \b. b)"#;
-    let output: LambdaTerm = parser.parse(input).expect("");
+    let output: LambdaTerm = parser.parse(&input).expect("");
     println!("{}", output);
     assert_eq!(output, LambdaTerm::term2());
     State::run(output);
