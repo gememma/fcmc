@@ -5,7 +5,7 @@ use crate::fcmc::LambdaTermParser;
 use crate::kam::{Closure, State};
 use crate::lambdaterm::LambdaTerm;
 use crate::pam::PState;
-use crate::sam::{SClosure, SLambdaTerm, SState};
+use crate::sam::{SLambdaTerm, SState};
 use crate::LambdaTerm::{Apply, Lambda};
 use lalrpop_util::lalrpop_mod;
 
@@ -18,7 +18,7 @@ pub mod sam;
 lalrpop_mod!(pub fcmc);
 
 #[allow(dead_code)]
-fn run_rand_examples() {
+fn run_misc_examples() {
     let example = box LambdaTerm::new_var("a");
     let example2 = box Lambda {
         arg: "x".to_string(),
@@ -129,17 +129,16 @@ fn run_rand_examples() {
     SState::run(SLambdaTerm::term3());
 }
 
+pub fn run_parser() {
+    let parser = LambdaTermParser::new();
+    let input = r#"(\b. (\a. \x. (\y. a) x b) (\a. \b. a)) (\z. z) (\a. \b. b)"#;
+    let output: LambdaTerm = parser.parse(input).expect("");
+    println!("{}", output);
+    assert_eq!(output, LambdaTerm::term2());
+    State::run(output);
+}
+
 fn main() {
-    // run_rand_examples();
-
-    println!("{}", SLambdaTerm::term3());
-    SState::run(SLambdaTerm::term3());
-
-    // let parser = LambdaTermParser::new();
-    // let input = r#"(\b. (\a. \x. (\y. a) x b) (\a. \b. a)) (\z. z) (\a. \b. b)"#;
-    // let output: LambdaTerm = parser.parse(input).expect("");
-    // println!("{:#?}", output);
-    // println!("{}", output);
-    // assert_eq!(output, LambdaTerm::term2());
-    // State::run(output);
+    // run_misc_examples();
+    run_parser();
 }

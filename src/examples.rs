@@ -308,6 +308,7 @@ impl SState {
         SState::new(
             SClosure::closure1(),
             vec![SClosure::closure2(), SClosure::closure1()],
+            vec![],
         )
     }
 }

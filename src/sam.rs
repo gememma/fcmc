@@ -95,7 +95,7 @@ impl SClosure {
                 if self.env.is_empty() {
                     SLambdaTerm::Variable { name }
                 } else {
-                    let env_last = self.env.pop().expect("");
+                    let env_last = self.env.pop().unwrap();
                     if &env_last.0 == &name {
                         env_last.1.retrieve_term()
                     } else {
@@ -147,33 +147,43 @@ impl fmt::Display for SClosure {
 pub struct SState {
     closure: SClosure,
     stack: Vec<SClosure>,
+    continuation: Vec<SClosure>,
 }
 
 impl SState {
-    pub fn new(closure: SClosure, stack: Vec<SClosure>) -> Self {
-        SState { closure, stack }
+    pub fn new(closure: SClosure, stack: Vec<SClosure>, continuation: Vec<SClosure>) -> Self {
+        SState {
+            closure,
+            stack,
+            continuation,
+        }
     }
 
     fn start(t: SLambdaTerm, s: Vec<SClosure>) -> SState {
-        SState::new(SClosure::new(t, vec![]), s)
+        SState::new(SClosure::new(t, vec![]), s, vec![])
     }
 
-    pub fn step(&mut self) {
-        if self.final_() {
-            return;
-        }
+    pub fn step(&mut self) -> Result<(), String> {
         match self.closure.term.clone() {
-            SLambdaTerm::Skip => return,
+            SLambdaTerm::Skip => {
+                if !self.final_() {
+                    self.closure = self.continuation.pop().unwrap();
+                }
+            }
             SLambdaTerm::Variable { name } => {
-                let env_last = self.closure.env.pop().expect("");
+                let env_last = self.closure.env.pop().unwrap();
                 if name.clone() == env_last.0 {
                     self.closure = env_last.1;
                 }
             }
             SLambdaTerm::Pop { arg, next } => {
-                let stack_last = self.stack.pop().expect("");
-                self.closure.term = *next;
-                self.closure.env.push((arg.clone(), stack_last.clone()))
+                if self.stack.is_empty() {
+                    return Err("Term cannot be executed. Pop action encountered but execution stack is empty.".to_string());
+                } else {
+                    let stack_last = self.stack.pop().unwrap();
+                    self.closure.term = *next;
+                    self.closure.env.push((arg.clone(), stack_last.clone()))
+                }
             }
             SLambdaTerm::Push { term, next } => {
                 self.closure.term = *next;
@@ -181,21 +191,12 @@ impl SState {
                     .push(SClosure::new(*term, self.closure.env.clone()))
             }
             SLambdaTerm::Seq { term, next } => {
-                let mut partial = SState::new(
-                    SClosure::new(*term, self.closure.env.clone()),
-                    self.stack.clone(),
-                );
-                partial.step();
-                println!("[PARTIAL STEP]: {}", partial);
-                *self = SState::new(
-                    SClosure::new(
-                        SLambdaTerm::new_seq(partial.closure.term, *next),
-                        self.closure.env.clone(),
-                    ),
-                    partial.stack.clone(),
-                );
+                self.continuation
+                    .push(SClosure::new(*next, self.closure.env.clone()));
+                self.closure.term = *term;
             }
         }
+        Ok(())
     }
 
     fn readback(&mut self) -> Vec<SLambdaTerm> {
@@ -208,7 +209,7 @@ impl SState {
 
     fn final_(&self) -> bool {
         match self.closure.term {
-            SLambdaTerm::Skip => true,
+            SLambdaTerm::Skip => self.continuation.is_empty(),
             _ => false,
         }
     }
@@ -217,7 +218,13 @@ impl SState {
         let mut s = SState::start(term, vec![]);
         while !s.final_() {
             println!("{}", s);
-            s.step();
+            match s.step() {
+                Ok(_) => {}
+                Err(e) => {
+                    println!("Error during step: \"{}\"", e);
+                    return vec![];
+                }
+            }
         }
         println!("{}", s);
         let ans = s.clone().readback();
@@ -236,17 +243,30 @@ impl fmt::Display for SState {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "({}, ", self.closure)?;
         if self.stack.is_empty() {
-            write!(f, "[])")
+            write!(f, "[], ")?;
         } else {
-            write!(f, "(")?;
+            write!(f, "[")?;
             let len = self.stack.len();
             for (i, t) in self.stack.iter().rev().enumerate() {
-                write!(f, "{}", t)?;
+                write!(f, "({})", t)?;
                 if i < len - 1 {
                     write!(f, ", ")?;
                 }
             }
-            write!(f, "))")
+            write!(f, "], ")?;
+        }
+        if self.continuation.is_empty() {
+            write!(f, "[])")
+        } else {
+            write!(f, "[")?;
+            let len = self.continuation.len();
+            for (i, t) in self.continuation.iter().rev().enumerate() {
+                write!(f, "({})", t)?;
+                if i < len - 1 {
+                    write!(f, ", ")?;
+                }
+            }
+            write!(f, "])")
         }
     }
 }
