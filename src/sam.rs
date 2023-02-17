@@ -84,10 +84,12 @@ pub struct SClosure {
 }
 
 impl SClosure {
+    /// Create a new ['SClosure'] from a ['SLambdaTerm'] and a ['Vec<(Var, SClosure)>']
     pub fn new(term: SLambdaTerm, env: Vec<(Var, SClosure)>) -> Self {
         SClosure { term, env }
     }
 
+    /// Given a ['SClosure'], perform substitutions from the env and return the final ['SLambdaTerm']
     pub fn retrieve_term(mut self) -> SLambdaTerm {
         match self.term {
             SLambdaTerm::Skip => self.term,
@@ -151,6 +153,7 @@ pub struct SState {
 }
 
 impl SState {
+    /// Create a new ['SState'] from a ['SClosure'], a stack: ['Vec<SClosure>'] and a continuation: ['Vec<(SClosure)>']
     pub fn new(closure: SClosure, stack: Vec<SClosure>, continuation: Vec<SClosure>) -> Self {
         SState {
             closure,
@@ -159,10 +162,13 @@ impl SState {
         }
     }
 
+    /// Create a start state: ['SState'] from a term: ['SLambdaTerm'] and a stack: ['Vec<SClosure>']
     fn start(t: SLambdaTerm, s: Vec<SClosure>) -> SState {
         SState::new(SClosure::new(t, vec![]), s, vec![])
     }
 
+    /// Perform a single step in-place of the abstract machine by mutating ['self'][SState]
+    /// returns an error if the term is not a valid program ie. cannot be run
     pub fn step(&mut self) -> Result<(), String> {
         match self.closure.term.clone() {
             SLambdaTerm::Skip => {
@@ -199,6 +205,7 @@ impl SState {
         Ok(())
     }
 
+    /// Given ['self'][SState], return the equivalent stack of ['SLambdaTerm']s
     fn readback(&mut self) -> Vec<SLambdaTerm> {
         let mut res = vec![];
         for c in self.stack.iter() {
@@ -207,6 +214,7 @@ impl SState {
         res
     }
 
+    /// Returns true if ['self'][SState] is a final state ie. computation is complete
     fn final_(&self) -> bool {
         match self.closure.term {
             SLambdaTerm::Skip => self.continuation.is_empty(),
@@ -214,6 +222,7 @@ impl SState {
         }
     }
 
+    /// Run the given ['SLambdaTerm'] on the sequential abstract machine, printing each step and the output
     pub fn run(term: SLambdaTerm) -> Vec<SLambdaTerm> {
         let mut s = SState::start(term, vec![]);
         while !s.final_() {

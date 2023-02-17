@@ -9,10 +9,12 @@ pub struct PState {
 }
 
 impl PState {
+    /// Create a new ['PState'] from a ['LambdaTerm'] and a stack: ['Vec<LambdaTerm>']
     pub fn new(term: LambdaTerm, stack: Vec<LambdaTerm>) -> Self {
         PState { term, stack }
     }
 
+    /// Create a start ['PState'] from a term: ['SLambdaTerm'] and a stack: ['Vec<SClosure>']
     pub fn p_start(n: LambdaTerm) -> Self {
         PState {
             term: n,
@@ -43,6 +45,7 @@ impl PState {
         }
     }
 
+    /// Returns true if ['self'][PState] is a final state ie. computation is complete
     pub fn p_final(&self) -> bool {
         match self.term {
             LambdaTerm::Variable { .. } => true,
@@ -51,7 +54,9 @@ impl PState {
         }
     }
 
+    /// Run the given ['LambdaTerm'] on the partial abstract machine, printing each step and the output
     pub fn p_run(term: LambdaTerm) -> LambdaTerm {
+        /// Given ['self'][PState], return the equivalent ['LambdaTerm']
         fn p_readback(st: &mut PState) -> LambdaTerm {
             let mut t = st.term.clone();
             while !st.stack.is_empty() {

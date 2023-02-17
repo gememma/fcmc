@@ -229,6 +229,7 @@ impl State {
 }
 
 impl SLambdaTerm {
+    /// <x>.[x].[x]
     pub fn term1() -> Self {
         Pop {
             arg: "x".to_string(),
@@ -245,6 +246,8 @@ impl SLambdaTerm {
             },
         }
     }
+
+    /// <x>.<y>
     pub fn term2() -> Self {
         Pop {
             arg: "x".to_string(),
@@ -254,6 +257,8 @@ impl SLambdaTerm {
             },
         }
     }
+
+    ///[<x>. [x]]. <f>. f; f; f
     pub fn term3() -> Self {
         Push {
             term: box Pop {
@@ -289,12 +294,15 @@ impl SLambdaTerm {
 }
 
 impl SClosure {
+    /// ([<x>. [x]]. <f>. f; f; f, [("y", [<x>. [x]]. <f>. f; f; f, [])])
     pub fn closure1() -> Self {
         SClosure::new(
             SLambdaTerm::term3(),
             vec![("y".to_string(), SClosure::new(SLambdaTerm::term3(), vec![]))],
         )
     }
+
+    /// (<x>.<y>, ["y", <x>.[x].[x], []])
     pub fn closure2() -> Self {
         SClosure::new(
             SLambdaTerm::term2(),
@@ -304,6 +312,7 @@ impl SClosure {
 }
 
 impl SState {
+    /// (([<x>. [x]]. <f>. f; f; f, [("y", [<x>. [x]]. <f>. f; f; f, [])]), [(<x>.<y>, ["y", <x>.[x].[x], []]), ([<x>. [x]]. <f>. f; f; f, [("y", [<x>. [x]]. <f>. f; f; f, [])])], [])
     pub fn state1() -> Self {
         SState::new(
             SClosure::closure1(),

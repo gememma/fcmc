@@ -10,10 +10,12 @@ pub struct Closure {
 }
 
 impl Closure {
+    /// Create a new ['Closure'] from a ['LambdaTerm'] and a ['Vec<(Var, Closure)>']
     pub fn new(term: LambdaTerm, env: Vec<(Var, Closure)>) -> Self {
         Closure { term, env }
     }
 
+    /// Given a ['Closure'], perform substitutions from the env and return the final ['LambdaTerm']
     pub fn retrieve_term(mut self) -> LambdaTerm {
         match self.term {
             LambdaTerm::Variable { name } => {
@@ -68,14 +70,17 @@ pub struct State {
 }
 
 impl State {
+    /// Create a new ['SState'] from a ['SClosure'], a stack: ['Vec<SClosure>'] and a continuation: ['Vec<(SClosure)>']
     pub fn new(closure: Closure, stack: Vec<Closure>) -> Self {
         State { closure, stack }
     }
 
+    /// Create a start state: ['State'] with an empty stack from a term: ['LambdaTerm']
     fn start(t: LambdaTerm) -> State {
         State::new(Closure::new(t, vec![]), vec![])
     }
 
+    /// Perform a single step in-place of the abstract machine by mutating ['self'][State]
     fn step(&mut self) {
         if self.final_() {
             return;
@@ -99,14 +104,7 @@ impl State {
         }
     }
 
-    fn final_(&self) -> bool {
-        match self.closure.term {
-            LambdaTerm::Variable { .. } => self.closure.env.is_empty(),
-            LambdaTerm::Lambda { .. } => self.stack.is_empty(),
-            _ => false,
-        }
-    }
-
+    /// Given ['self'][State], return the equivalent ['LambdaTerm']
     fn readback(&mut self) -> LambdaTerm {
         let cl = self.closure.clone();
         let mut t = cl.retrieve_term();
@@ -120,6 +118,16 @@ impl State {
         t
     }
 
+    /// Returns true if ['self'][State] is a final state ie. computation is complete
+    fn final_(&self) -> bool {
+        match self.closure.term {
+            LambdaTerm::Variable { .. } => self.closure.env.is_empty(),
+            LambdaTerm::Lambda { .. } => self.stack.is_empty(),
+            _ => false,
+        }
+    }
+
+    /// Run the given ['LambdaTerm'] on the krivine abstract machine, printing each step and the output
     pub fn run(term: LambdaTerm) -> LambdaTerm {
         let mut s = State::start(term);
         while !s.final_() {
