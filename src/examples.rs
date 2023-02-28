@@ -320,4 +320,13 @@ impl SState {
             vec![],
         )
     }
+
+    ///
+    pub fn state2() -> Self {
+        SState::new(
+            SClosure::new(Skip, vec![]),
+            vec![SClosure::closure2(), SClosure::closure1()],
+            vec![],
+        )
+    }
 }

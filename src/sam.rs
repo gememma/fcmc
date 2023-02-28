@@ -279,3 +279,43 @@ impl fmt::Display for SState {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::sam::{SClosure, SLambdaTerm, SState};
+
+    #[test]
+    fn prints_seq_state() {
+        let s = SState::state1();
+        assert_eq!(s.to_string(), "([<x>.[x]].<f>.f;f;f, [(\"y\", [<x>.[x]].<f>.f;f;f, [])], [([<x>.[x]].<f>.f;f;f, [(\"y\", [<x>.[x]].<f>.f;f;f, [])]), (<x>.<y>, [(\"y\", <x>.[x].[x], [])])], [])");
+    }
+
+    #[test]
+    fn prints_seq_closure() {
+        let c = SClosure::closure1();
+        assert_eq!(
+            c.to_string(),
+            "[<x>.[x]].<f>.f;f;f, [(\"y\", [<x>.[x]].<f>.f;f;f, [])]"
+        );
+    }
+
+    #[test]
+    fn term_into_state() {
+        let s = SState::start(SLambdaTerm::term1(), vec![]);
+        assert_eq!(s.to_string(), "(<x>.[x].[x], [], [], [])");
+    }
+
+    #[test]
+    fn detect_end_state() {
+        let s = SState::state1();
+        let s2 = SState::state2();
+        assert_eq!(s.final_(), false);
+        assert_eq!(s2.final_(), true);
+    }
+
+    #[test]
+    fn closure_to_term() {
+        let ans = SState::state2().readback();
+        assert_eq!(ans, vec![SLambdaTerm::term2(), SLambdaTerm::term3()])
+    }
+}
