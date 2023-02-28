@@ -138,15 +138,12 @@ struct Args {
 
 pub fn run_parser() {
     let input = Args::parse().input;
-    // let input = r#"(\b. (\a. \x. (\y. a) x b) (\a. \b. a)) (\z. z) (\a. \b. b)"#;
     let parser = LambdaTermParser::new();
     let output: LambdaTerm = parser.parse(&input).expect("");
     println!("{}", output);
-    assert_eq!(output, LambdaTerm::term2());
     State::run(output);
 }
 
 fn main() {
-    // run_misc_examples();
     run_parser();
 }
