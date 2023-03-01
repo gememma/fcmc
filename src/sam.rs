@@ -318,4 +318,26 @@ mod tests {
         let ans = SState::state2().readback();
         assert_eq!(ans, vec![SLambdaTerm::term2(), SLambdaTerm::term3()])
     }
+
+    #[test]
+    fn run_term4() {
+        let ans = SState::run(SLambdaTerm::term4());
+        assert_eq!(
+            ans,
+            vec![
+                SLambdaTerm::Variable {
+                    name: "y".to_string()
+                },
+                SLambdaTerm::Variable {
+                    name: "x".to_string()
+                },
+                SLambdaTerm::Variable {
+                    name: "y".to_string()
+                },
+                SLambdaTerm::Variable {
+                    name: "x".to_string()
+                },
+            ]
+        );
+    }
 }

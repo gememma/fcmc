@@ -291,6 +291,37 @@ impl SLambdaTerm {
             },
         }
     }
+
+    /// [[y].[x]].<z>.z.z
+    pub fn term4() -> Self {
+        Push {
+            term: box Push {
+                term: box Variable {
+                    name: "y".to_string(),
+                },
+                next: box Push {
+                    term: box Variable {
+                        name: "x".to_string(),
+                    },
+                    next: box Skip,
+                },
+            },
+            next: box Pop {
+                arg: "z".to_string(),
+                next: box Seq {
+                    term: box Variable {
+                        name: "z".to_string(),
+                    },
+                    next: box Seq {
+                        term: box Variable {
+                            name: "z".to_string(),
+                        },
+                        next: box Skip,
+                    },
+                },
+            },
+        }
+    }
 }
 
 impl SClosure {
