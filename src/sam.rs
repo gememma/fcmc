@@ -163,7 +163,7 @@ impl SState {
     }
 
     /// Create a start state: ['SState'] from a term: ['SLambdaTerm'] and a stack: ['Vec<SClosure>']
-    fn start(t: SLambdaTerm, s: Vec<SClosure>) -> SState {
+    fn start(t: SLambdaTerm, s: Vec<SClosure>) -> Self {
         SState::new(SClosure::new(t, vec![]), s, vec![])
     }
 
@@ -250,7 +250,9 @@ impl SState {
 
 impl fmt::Display for SState {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        // closure
         write!(f, "({}, ", self.closure)?;
+        // lambda stack
         if self.stack.is_empty() {
             write!(f, "[], ")?;
         } else {
@@ -264,6 +266,7 @@ impl fmt::Display for SState {
             }
             write!(f, "], ")?;
         }
+        // continuation stack
         if self.continuation.is_empty() {
             write!(f, "[])")
         } else {
