@@ -1,3 +1,4 @@
+use crate::fmc::{FmcClosure, FmcTerm};
 use crate::kam::{Closure, State};
 use crate::lambdaterm::LambdaTerm;
 use crate::pam::PState;
@@ -359,5 +360,20 @@ impl SState {
             vec![SClosure::closure2(), SClosure::closure1()],
             vec![],
         )
+    }
+}
+
+impl FmcTerm {
+    pub fn term1() -> Self {
+        FmcTerm::new_seq(
+            FmcTerm::new_push(FmcTerm::new_variable("x"), "a".to_string(), FmcTerm::Skip),
+            FmcTerm::new_pop("a".to_string(), "y", FmcTerm::Skip),
+        )
+    }
+}
+
+impl FmcClosure {
+    pub fn closure1() -> Self {
+        FmcClosure::new(FmcTerm::term1(), vec![])
     }
 }

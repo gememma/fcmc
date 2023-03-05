@@ -2,6 +2,7 @@
 extern crate lalrpop_util;
 
 use crate::fcmc::LambdaTermParser;
+use crate::fmc::{FmcClosure, FmcState, FmcTerm};
 use crate::kam::{Closure, State};
 use crate::lambdaterm::LambdaTerm;
 use crate::pam::PState;
@@ -11,6 +12,7 @@ use clap::Parser;
 use lalrpop_util::lalrpop_mod;
 
 pub mod examples;
+pub mod fmc;
 pub mod kam;
 pub mod lambdaterm;
 pub mod pam;
@@ -127,7 +129,8 @@ fn run_misc_examples() {
     println!("{}", SLambdaTerm::term1());
     println!("{}", SLambdaTerm::term2());
     println!("{}", SLambdaTerm::term3());
-    SState::run(SLambdaTerm::term3());
+
+    SState::run(SLambdaTerm::term4());
 }
 
 #[derive(Parser)]
@@ -145,5 +148,8 @@ pub fn run_parser() {
 }
 
 fn main() {
-    run_parser();
+    // run_parser();
+    println!("{}", FmcTerm::term1());
+    println!("{}", FmcClosure::closure1());
+    println!("{}", FmcState::start(FmcTerm::term1()));
 }
