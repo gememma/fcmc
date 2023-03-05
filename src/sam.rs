@@ -49,7 +49,7 @@ impl SLambdaTerm {
 
     /// Turn two [`SLambdaTerm`]s into a [`Seq`][SLambdaTerm::Push]
     pub fn new_seq(term: SLambdaTerm, next: SLambdaTerm) -> Self {
-        SLambdaTerm::Push {
+        SLambdaTerm::Seq {
             term: box term,
             next: box next,
         }
