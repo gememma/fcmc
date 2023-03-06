@@ -99,6 +99,55 @@ impl FmcClosure {
     pub fn new(term: FmcTerm, env: Vec<(Var, FmcClosure)>) -> Self {
         FmcClosure { term, env }
     }
+
+    pub fn retrieve_term(mut self) -> FmcTerm {
+        match self.term {
+            FmcTerm::Skip => self.term,
+            FmcTerm::Variable { name } => {
+                if self.env.is_empty() {
+                    FmcTerm::Variable { name }
+                } else {
+                    let env_last = self.env.pop().unwrap();
+                    if &env_last.0 == &name {
+                        env_last.1.retrieve_term()
+                    } else {
+                        self.term = FmcTerm::Variable { name };
+                        self.retrieve_term()
+                    }
+                }
+            }
+            FmcTerm::Pop {
+                location_id,
+                arg,
+                next,
+            } => {
+                let mut e = self.env;
+                e.push((
+                    arg.clone(),
+                    FmcClosure::new(FmcTerm::new_variable(&arg), vec![]),
+                ));
+                let c = FmcClosure::new(*next, e);
+                FmcTerm::Pop {
+                    location_id,
+                    arg,
+                    next: box c.retrieve_term(),
+                }
+            }
+            FmcTerm::Push {
+                term,
+                location_id,
+                next,
+            } => FmcTerm::Push {
+                term: box FmcClosure::new(*term, self.env.clone()).retrieve_term(),
+                location_id,
+                next: box FmcClosure::new(*next, self.env).retrieve_term(),
+            },
+            FmcTerm::Seq { term, next } => FmcTerm::Seq {
+                term: box FmcClosure::new(*term, self.env.clone()).retrieve_term(),
+                next: box FmcClosure::new(*next, self.env).retrieve_term(),
+            },
+        }
+    }
 }
 
 impl fmt::Display for FmcClosure {
@@ -136,7 +185,7 @@ impl FmcState {
         }
     }
 
-    pub fn start(t: FmcTerm) -> Self {
+    fn start(t: FmcTerm) -> Self {
         FmcState::new(FmcClosure::new(t, vec![]), HashMap::new(), vec![])
     }
 }
