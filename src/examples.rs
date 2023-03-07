@@ -366,8 +366,18 @@ impl SState {
 impl FmcTerm {
     pub fn term1() -> Self {
         FmcTerm::new_seq(
-            FmcTerm::new_push(FmcTerm::new_variable("x"), "a".to_string(), FmcTerm::Skip),
-            FmcTerm::new_pop("a".to_string(), "y", FmcTerm::Skip),
+            FmcTerm::new_push(
+                FmcTerm::new_push(
+                    FmcTerm::Variable {
+                        name: "x".to_string(),
+                    },
+                    "out".to_string(),
+                    FmcTerm::Skip,
+                ),
+                "a".to_string(),
+                FmcTerm::Skip,
+            ),
+            FmcTerm::new_pop("a".to_string(), "y", FmcTerm::new_variable("y")),
         )
     }
 }

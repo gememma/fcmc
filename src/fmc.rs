@@ -1,7 +1,9 @@
 use crate::lambdaterm::Var;
+use clap::error::ErrorKind::NoEquals;
 use std::collections::HashMap;
 use std::fmt;
 use std::fmt::Formatter;
+use std::ops::Index;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum FmcTerm {
@@ -187,6 +189,96 @@ impl FmcState {
 
     fn start(t: FmcTerm) -> Self {
         FmcState::new(FmcClosure::new(t, vec![]), HashMap::new(), vec![])
+    }
+
+    fn step(&mut self) -> Result<(), String> {
+        match self.closure.term.clone() {
+            FmcTerm::Skip => {
+                if !self.final_() {
+                    self.closure = self.continuation.pop().unwrap();
+                }
+            }
+            FmcTerm::Variable { name } => {
+                let env_last = self.closure.env.pop().unwrap();
+                if name.clone() == env_last.0 {
+                    self.closure = env_last.1;
+                }
+            }
+            FmcTerm::Pop {
+                location_id,
+                arg,
+                next,
+            } => {
+                let mut location = self
+                    .memory
+                    .get_mut(&location_id)
+                    .ok_or("Specified location doesn't exist".to_string())?;
+                let stack_last = location.pop().ok_or(
+                    "Term cannot be executed. Pop action encountered but location is empty."
+                        .to_string(),
+                )?;
+                self.closure.term = *next;
+                self.closure.env.push((arg.clone(), stack_last.clone()));
+            }
+            FmcTerm::Push {
+                term,
+                location_id,
+                next,
+            } => {
+                self.closure.term = *next;
+                self.memory
+                    .entry(location_id)
+                    .or_default()
+                    .push(FmcClosure::new(*term, self.closure.env.clone()));
+            }
+            FmcTerm::Seq { term, next } => {
+                self.continuation
+                    .push(FmcClosure::new(*next, self.closure.env.clone()));
+                self.closure.term = *term;
+            }
+        }
+        Ok(())
+    }
+
+    fn readback(&mut self) -> Vec<(Var, FmcTerm)> {
+        let mut res = vec![];
+        for (name, location) in self.memory.iter() {
+            for c in location {
+                res.push((name.clone(), c.clone().retrieve_term()));
+            }
+        }
+        res
+    }
+
+    fn final_(&self) -> bool {
+        match self.closure.term {
+            FmcTerm::Skip => self.continuation.is_empty(),
+            _ => false,
+        }
+    }
+
+    pub fn run(term: FmcTerm) -> Vec<(Var, FmcTerm)> {
+        let mut s = FmcState::start(term);
+        while !s.final_() {
+            println!("{}", s);
+            match s.step() {
+                Ok(_) => {}
+                Err(e) => {
+                    println!("Error during step: \"{}\"", e);
+                    return vec![];
+                }
+            }
+        }
+        println!("{}", s);
+        let ans = s.clone().readback();
+        let len = ans.len();
+        for (i, (n, t)) in ans.iter().rev().enumerate() {
+            print!("{}: {}", n, t);
+            if i < len - 1 {
+                println!(", ");
+            }
+        }
+        ans
     }
 }
 
