@@ -1,0 +1,68 @@
+use crate::fcmc::FcmcTerm;
+
+grammar;
+
+match {
+    "." => DOT,
+    ";" => S_COLON,
+    "*" => SKIP,
+    "[" => L_BRACKET,
+    "]" => R_BRACKET,
+    "<" => L_ANGLE,
+    ">" => R_ANGLE,
+    "{" => L_BRACE,
+    "}" => R_BRACE,
+    "(" => L_PAREN,
+    ")" => R_PAREN,
+    r"[a-z][a-z0-9]*" => VAR,
+}
+
+pub FcmcTerm: FcmcTerm = {
+    ForkTerm => <>,
+};
+
+ForkTerm: FcmcTerm = {
+    L_BRACE <f:SeqTerm> R_BRACE DOT <c:ForkTerm> => FcmcTerm::new_fork (
+        f,
+        c
+    ),
+    SeqTerm => <>,
+}
+
+SeqTerm: FcmcTerm = {
+    <t:SeqTerm> S_COLON <n:SimpleTerm> => FcmcTerm::new_seq (
+        t,
+        n
+    ),
+    SimpleTerm => <>,
+}
+
+SimpleTerm: FcmcTerm = {
+    <l:VAR> L_ANGLE <v:VAR> R_ANGLE DOT <n:SimpleTerm> => FcmcTerm::new_pop (
+        l.to_string(),
+        v,
+        n
+    ),
+    <l:VAR> L_ANGLE <v:VAR> R_ANGLE => FcmcTerm::new_pop (
+        l.to_string(),
+        v,
+        FcmcTerm::Skip{}
+    ),
+    L_BRACKET <t:SimpleTerm> R_BRACKET <l:VAR> DOT <n:SimpleTerm> => FcmcTerm::new_push (
+        t,
+        l.to_string(),
+        n
+    ),
+    L_BRACKET <t:SimpleTerm> R_BRACKET <l:VAR> => FcmcTerm::new_push (
+        t,
+        l.to_string(),
+        FcmcTerm::Skip{}
+    ),
+    SKIP => FcmcTerm::Skip{},
+    L_PAREN <ForkTerm> R_PAREN,
+    Var => <>,
+}
+
+Var: FcmcTerm = {
+   VAR => FcmcTerm::new_variable(<>),
+}
