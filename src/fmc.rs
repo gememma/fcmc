@@ -1,9 +1,7 @@
 use crate::lambdaterm::Var;
-use clap::error::ErrorKind::NoEquals;
 use std::collections::HashMap;
 use std::fmt;
 use std::fmt::Formatter;
-use std::ops::Index;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum FmcTerm {

@@ -1,3 +1,4 @@
+use crate::fcmc::FcmcTerm;
 use crate::fmc::{FmcClosure, FmcTerm};
 use crate::kam::{Closure, State};
 use crate::lambdaterm::LambdaTerm;
@@ -364,6 +365,7 @@ impl SState {
 }
 
 impl FmcTerm {
+    /// [[x]out]a;a<y>.y
     pub fn term1() -> Self {
         FmcTerm::new_seq(
             FmcTerm::new_push(
@@ -385,5 +387,30 @@ impl FmcTerm {
 impl FmcClosure {
     pub fn closure1() -> Self {
         FmcClosure::new(FmcTerm::term1(), vec![])
+    }
+}
+
+impl FcmcTerm {
+    /// {[[x]out]a}.a<y>.y
+    pub fn term1() -> Self {
+        FcmcTerm::new_fork(
+            FcmcTerm::new_push(
+                FcmcTerm::new_push(
+                    FcmcTerm::Variable {
+                        name: "x".to_string(),
+                    },
+                    "out".to_string(),
+                    FcmcTerm::Skip,
+                ),
+                "a".to_string(),
+                FcmcTerm::Skip,
+            ),
+            FcmcTerm::new_pop("a".to_string(), "y", FcmcTerm::new_variable("y")),
+        )
+    }
+
+    /// [x]a.{a<y>.[[y]out]b.[*]t1}.{b<z>.z.[*]t2}.t1<null>.t2<null>.*
+    pub fn term2() -> Self {
+        todo!()
     }
 }
