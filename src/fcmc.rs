@@ -127,8 +127,8 @@ impl fmt::Display for FcmcTerm {
                 _ => write!(f, "{};{}", term, next),
             },
             FcmcTerm::Fork { forked, cont } => match **cont {
-                FcmcTerm::Skip => write!(f, "{}", forked),
-                _ => write!(f, "{}|{}", forked, cont),
+                FcmcTerm::Skip => write!(f, "{{{}}}", forked),
+                _ => write!(f, "{{{}}}.{}", forked, cont),
             },
         }
     }
@@ -350,6 +350,7 @@ impl FcmcThreadState {
                     self.memory.clone(),
                 );
                 thread::spawn(move || {
+                    println!("New thread spawned: {}", new_thread.closure.term);
                     new_thread.run_thread();
                 });
                 self.closure.term = *cont;
@@ -391,6 +392,7 @@ impl FcmcProgramState {
                 println!(", ");
             }
         }
+        println!();
         ans
     }
 }
