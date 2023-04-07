@@ -96,7 +96,7 @@ impl FcmcTerm {
                 FcmcTerm::Fork { forked, cont } => traverse(forked, traverse(cont, list)),
             }
         }
-        let mut list = HashSet::new();
+        let list = HashSet::new();
         traverse(self, list)
     }
 }
@@ -313,7 +313,11 @@ impl FcmcThreadState {
                 }
             }
             FcmcTerm::Variable { name } => {
-                let env_last = self.closure.env.pop().unwrap();
+                let env_last = self
+                    .closure
+                    .env
+                    .pop()
+                    .expect(&*format!("Unable to pop {} from env", name));
                 if name.clone() == env_last.0 {
                     self.closure = env_last.1;
                 }
@@ -380,7 +384,10 @@ impl FcmcProgramState {
         let locations = term.location_scan();
         let memory = Memory::new(locations);
         let mut state = FcmcProgramState::start(term, memory);
-        state.main_thread.run_thread();
+        state
+            .main_thread
+            .run_thread()
+            .expect("Failed to start main thread.");
 
         // print final state of memory
         // clone state to prevent other threads continuing to edit memory

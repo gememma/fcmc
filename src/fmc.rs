@@ -207,7 +207,7 @@ impl FmcState {
                 arg,
                 next,
             } => {
-                let mut location = self
+                let location = self
                     .memory
                     .get_mut(&location_id)
                     .ok_or("Specified location doesn't exist".to_string())?;
@@ -318,5 +318,28 @@ impl fmt::Display for FmcState {
             }
             write!(f, "])")
         }
+    }
+}
+
+mod tests {
+    use crate::fmc::{FmcState, FmcTerm};
+
+    #[test]
+    fn prints_term() {
+        let s = FmcState::start(FmcTerm::term1()).closure.term;
+        assert_eq!(s.to_string(), "[[x]out]a;a<y>.y");
+    }
+
+    #[test]
+    fn prints_state() {
+        let s = FmcState::start(FmcTerm::term1());
+        assert_eq!(s.to_string(), "([[x]out]a;a<y>.y, [], [], [])");
+    }
+
+    #[test]
+    fn run_term1() {
+        let ans = FmcState::run(FmcTerm::term1());
+        let expected = ("out".to_string(), FmcTerm::new_variable("x"));
+        assert_eq!(ans, vec![expected]);
     }
 }
