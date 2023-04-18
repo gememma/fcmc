@@ -26,25 +26,25 @@ struct Args {
 }
 
 pub fn run_parser() {
-    println!("Input a term: ");
+    println!("\nInput a term: ");
     let mut input = String::new();
     io::stdin()
         .read_line(&mut input)
         .expect("Failed to read input");
     let parser = FcmcTermParser::new();
     let parsed: FcmcTerm = parser.parse(&input.trim()).expect("");
-    println!("{}", parsed);
+    println!("\nINPUT: {}", parsed);
     FcmcProgramState::run(parsed);
 }
 
 pub fn run_example() {
-    println!("{}", FcmcTerm::term1());
+    println!("\n{}", FcmcTerm::term1());
     FcmcProgramState::run(FcmcTerm::term1());
     println!("");
 }
 
 pub fn print_help() {
-    println!("To see an example of a term, choose option 2 in the menu.");
+    println!("\nTo see an example of a term, choose option 2 in the menu.");
     println!("When you run a term, it will print out the term and then run it.");
     println!("Any time a term is forked, the term on the new thread will be printed.");
     println!("The output of the term will be printed as a list of locations and their contents.");
@@ -54,7 +54,7 @@ pub fn print_help() {
 fn main() {
     loop {
         println!(
-            "Welcome to the FCMC abstract machine.\n\
+            "\nWelcome to the FCMC abstract machine.\n\
         1. Run an FCMC term\n\
         2. Run an example term\n\
         3. Help\n\

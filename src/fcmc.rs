@@ -393,6 +393,7 @@ impl FcmcProgramState {
         // clone state to prevent other threads continuing to edit memory
         let ans = state.main_thread.memory.clone().readback();
         let len = ans.len();
+        println!("OUTPUT:");
         for (i, (n, t)) in ans.iter().rev().enumerate() {
             print!("{}: {}", n, t);
             if i < len - 1 {
