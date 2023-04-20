@@ -382,6 +382,23 @@ impl FmcTerm {
             FmcTerm::new_pop("a".to_string(), "y", FmcTerm::new_variable("y")),
         )
     }
+
+    /// [a<x>]b.[[z]out]a.b<f>.f.x
+    pub fn term2() -> Self {
+        FmcTerm::new_push(
+            FmcTerm::new_pop("a".to_string(), "x", FmcTerm::new_variable("x")),
+            "b".to_string(),
+            FmcTerm::new_push(
+                FmcTerm::new_push(FmcTerm::new_variable("z"), "out".to_string(), FmcTerm::Skip),
+                "a".to_string(),
+                FmcTerm::new_pop(
+                    "b".to_string(),
+                    "f",
+                    FmcTerm::new_seq(FmcTerm::new_variable("f"), FmcTerm::Skip),
+                ),
+            ),
+        )
+    }
 }
 
 impl FmcClosure {
@@ -409,8 +426,58 @@ impl FcmcTerm {
         )
     }
 
-    /// [x]a.{a<y>.[[y]out]b.[*]t1}.{b<z>.z.[*]t2}.t1<null>.t2<null>.*
+    /// [a<x>]b.[[z]out]a.b<f>.f.x
     pub fn term2() -> Self {
-        todo!()
+        FcmcTerm::new_push(
+            FcmcTerm::new_pop("a".to_string(), "x", FcmcTerm::new_variable("x")),
+            "b".to_string(),
+            FcmcTerm::new_push(
+                FcmcTerm::new_push(
+                    FcmcTerm::new_variable("z"),
+                    "out".to_string(),
+                    FcmcTerm::Skip,
+                ),
+                "a".to_string(),
+                FcmcTerm::new_pop(
+                    "b".to_string(),
+                    "f",
+                    FcmcTerm::new_seq(FcmcTerm::new_variable("f"), FcmcTerm::Skip),
+                ),
+            ),
+        )
+    }
+
+    /// [x]a.{a<y>.[[y]out]b.[*]t1}.{b<z>.z.[*]t2}.t1<n>.t2<m>.*
+    pub fn term3() -> Self {
+        FcmcTerm::new_push(
+            FcmcTerm::new_variable("x"),
+            "a".to_string(),
+            FcmcTerm::new_fork(
+                FcmcTerm::new_pop(
+                    "a".to_string(),
+                    "y",
+                    FcmcTerm::new_push(
+                        FcmcTerm::new_push(
+                            FcmcTerm::new_variable("y"),
+                            "out".to_string(),
+                            FcmcTerm::Skip,
+                        ),
+                        "b".to_string(),
+                        FcmcTerm::new_push(FcmcTerm::Skip, "t1".to_string(), FcmcTerm::Skip),
+                    ),
+                ),
+                FcmcTerm::new_fork(
+                    FcmcTerm::new_seq(
+                        FcmcTerm::new_pop("b".to_string(), "z", FcmcTerm::new_variable("z")),
+                        FcmcTerm::new_push(FcmcTerm::Skip, "t2".to_string(), FcmcTerm::Skip),
+                    ),
+                    FcmcTerm::new_pop(
+                        "t1".to_string(),
+                        "n",
+                        FcmcTerm::new_pop("t2".to_string(), "m", FcmcTerm::Skip),
+                    ),
+                ),
+            ),
+        )
     }
 }

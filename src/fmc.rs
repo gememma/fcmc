@@ -322,12 +322,18 @@ impl fmt::Display for FmcState {
 }
 
 mod tests {
-    use crate::fmc::{FmcState, FmcTerm};
+    use crate::fmc::{FmcClosure, FmcState, FmcTerm};
 
     #[test]
     fn prints_term() {
         let s = FmcState::start(FmcTerm::term1()).closure.term;
         assert_eq!(s.to_string(), "[[x]out]a;a<y>.y");
+    }
+
+    #[test]
+    fn prints_closure() {
+        let c = FmcClosure::closure1();
+        assert_eq!(c.to_string(), "[[x]out]a;a<y>.y, []");
     }
 
     #[test]
@@ -340,6 +346,13 @@ mod tests {
     fn run_term1() {
         let ans = FmcState::run(FmcTerm::term1());
         let expected = ("out".to_string(), FmcTerm::new_variable("x"));
+        assert_eq!(ans, vec![expected]);
+    }
+
+    #[test]
+    fn run_term2() {
+        let ans = FmcState::run(FmcTerm::term2());
+        let expected = ("out".to_string(), FmcTerm::new_variable("z"));
         assert_eq!(ans, vec![expected]);
     }
 }

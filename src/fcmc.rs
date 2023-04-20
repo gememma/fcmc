@@ -305,6 +305,7 @@ impl FcmcThreadState {
         Ok(())
     }
 
+    #[allow(unused_must_use)]
     fn step(&mut self) -> Result<(), String> {
         match self.closure.term.clone() {
             FcmcTerm::Skip => {
@@ -443,5 +444,50 @@ impl fmt::Display for FcmcProgramState {
             }
             write!(f, "])")
         }
+    }
+}
+
+mod tests {
+    use crate::fcmc::{FcmcProgramState, FcmcTerm, Memory};
+
+    #[test]
+    fn prints_term() {
+        let term = FcmcTerm::term1();
+        let s = FcmcProgramState::start(term.clone(), Memory::new(term.location_scan()))
+            .main_thread
+            .closure
+            .term;
+        assert_eq!(s.to_string(), "{[[x]out]a}.a<y>.y");
+    }
+
+    #[test]
+    fn spawn_thread() {
+        let fork_term = FcmcTerm::new_fork(
+            FcmcTerm::new_push(FcmcTerm::new_variable("x"), "a".to_string(), FcmcTerm::Skip),
+            FcmcTerm::new_pop("a".to_string(), "y", FcmcTerm::Skip),
+        );
+        let ans = FcmcProgramState::run(fork_term);
+        assert_eq!(ans, vec![]);
+    }
+
+    #[test]
+    fn run_term1() {
+        let ans = FcmcProgramState::run(FcmcTerm::term1());
+        let expected = ("out".to_string(), FcmcTerm::new_variable("x"));
+        assert_eq!(ans, vec![expected]);
+    }
+
+    #[test]
+    fn run_term2() {
+        let ans = FcmcProgramState::run(FcmcTerm::term2());
+        let expected = ("out".to_string(), FcmcTerm::new_variable("z"));
+        assert_eq!(ans, vec![expected]);
+    }
+
+    #[test]
+    fn run_term3() {
+        let ans = FcmcProgramState::run(FcmcTerm::term3());
+        let expected = ("out".to_string(), FcmcTerm::new_variable("x"));
+        assert_eq!(ans, vec![expected]);
     }
 }
