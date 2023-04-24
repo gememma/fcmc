@@ -15,6 +15,7 @@ pub mod fmc;
 pub mod kam;
 pub mod lambdaterm;
 pub mod pam;
+pub mod parser_test;
 pub mod sam;
 
 lalrpop_mod!(pub parser);

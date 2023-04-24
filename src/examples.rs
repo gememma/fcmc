@@ -426,7 +426,7 @@ impl FcmcTerm {
         )
     }
 
-    /// [a<x>]b.[[z]out]a.b<f>.f.x
+    /// [a<x>.x]b.[[z]out]a.b<f>.f
     pub fn term2() -> Self {
         FcmcTerm::new_push(
             FcmcTerm::new_pop("a".to_string(), "x", FcmcTerm::new_variable("x")),
@@ -447,7 +447,7 @@ impl FcmcTerm {
         )
     }
 
-    /// [x]a.{a<y>.[[y]out]b.[*]t1}.{b<z>.z.[*]t2}.t1<n>.t2<m>.*
+    /// [x]a.{a<y>.[[y]out]b.[*]t1}.{b<z>.z;[*]t2}.t1<n>.t2<m>.*
     pub fn term3() -> Self {
         FcmcTerm::new_push(
             FcmcTerm::new_variable("x"),
