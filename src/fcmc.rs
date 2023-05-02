@@ -391,8 +391,7 @@ impl FcmcProgramState {
             .expect("Failed to start main thread.");
 
         // print final state of memory
-        // clone state to prevent other threads continuing to edit memory
-        let ans = state.main_thread.memory.clone().readback();
+        let ans = state.main_thread.memory.readback();
         let len = ans.len();
         println!("OUTPUT:");
         for (i, (n, t)) in ans.iter().rev().enumerate() {
