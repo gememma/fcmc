@@ -170,7 +170,7 @@ mod tests {
         let s = State::start(LambdaTerm::term1());
         assert_eq!(
             s.to_string(),
-            "(((\\x. \\y. x) (\\a. \\b. a)) (\\a. \\b. b), [], [])"
+            r#"(((\x. \y. x) (\a. \b. a)) (\a. \b. b), [], [])"#
         );
     }
 
@@ -215,7 +215,7 @@ mod tests {
         );
         assert_eq!(
             c.to_string(),
-            "\\b. a, [(\"a\", b, [(\"x\", \\a. \\b. b, [])]), (\"b\", \\z. z, [])]"
+            r#"\b. a, [("a", b, [("x", \a. \b. b, [])]), ("b", \z. z, [])]"#
         )
     }
 
