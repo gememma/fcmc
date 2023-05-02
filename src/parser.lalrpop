@@ -14,7 +14,7 @@ match {
     "}" => R_BRACE,
     "(" => L_PAREN,
     ")" => R_PAREN,
-    r"[a-z][a-z0-9]*" => VAR,
+    r"~?[a-z][a-z0-9]*" => VAR,
 }
 
 pub FcmcTerm: FcmcTerm = {

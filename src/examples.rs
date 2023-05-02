@@ -408,7 +408,7 @@ impl FmcClosure {
 }
 
 impl FcmcTerm {
-    /// {[[x]out]a}.a<y>.y
+    /// {[[x]~out]~a}.~a<y>.y
     pub fn term1() -> Self {
         FcmcTerm::new_fork(
             FcmcTerm::new_push(
@@ -416,13 +416,13 @@ impl FcmcTerm {
                     FcmcTerm::Variable {
                         name: "x".to_string(),
                     },
-                    "out".to_string(),
+                    "~out".to_string(),
                     FcmcTerm::Skip,
                 ),
-                "a".to_string(),
+                "~a".to_string(),
                 FcmcTerm::Skip,
             ),
-            FcmcTerm::new_pop("a".to_string(), "y", FcmcTerm::new_variable("y")),
+            FcmcTerm::new_pop("~a".to_string(), "y", FcmcTerm::new_variable("y")),
         )
     }
 

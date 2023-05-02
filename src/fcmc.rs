@@ -72,8 +72,9 @@ impl FcmcTerm {
         }
     }
 
-    /// Return a list of location names accessed in a [FcmcTerm]
-    pub fn location_scan(&self) -> HashSet<Var> {
+    /// Return a list of channel names accessed in a [FcmcTerm].
+    /// Channel names start with a ~, stacks do not need to be created ahead of time
+    pub fn channel_scan(&self) -> HashSet<Var> {
         fn traverse(term: &FcmcTerm, mut list: HashSet<Var>) -> HashSet<Var> {
             match term {
                 FcmcTerm::Skip => return list,
@@ -81,7 +82,9 @@ impl FcmcTerm {
                 FcmcTerm::Pop {
                     location_id, next, ..
                 } => {
-                    list.insert(location_id.clone());
+                    if location_id.starts_with("~") {
+                        list.insert(location_id.clone());
+                    }
                     traverse(next, list)
                 }
                 FcmcTerm::Push {
@@ -89,7 +92,9 @@ impl FcmcTerm {
                     location_id,
                     next,
                 } => {
-                    list.insert(location_id.clone());
+                    if location_id.starts_with("~") {
+                        list.insert(location_id.clone());
+                    }
                     traverse(term, traverse(next, list))
                 }
                 FcmcTerm::Seq { term, next } => traverse(term, traverse(next, list)),
@@ -212,60 +217,100 @@ impl fmt::Display for FcmcClosure {
 
 #[derive(Clone, Debug)]
 pub struct Memory {
-    bufs: HashMap<Var, (Sender<FcmcClosure>, Receiver<FcmcClosure>)>,
+    channels: HashMap<Var, (Sender<FcmcClosure>, Receiver<FcmcClosure>)>,
+    stacks: HashMap<Var, Vec<FcmcClosure>>,
 }
 
 impl Memory {
     /// create a ['Memory'][Self] containing senders and receivers for each location
-    /// locations in FCMC are channels
+    /// locations in FCMC are channels or stacks, indicated by a ~
     pub fn new(locations: HashSet<Var>) -> Self {
-        let mut bufs = HashMap::new();
+        let mut channels = HashMap::new();
+        let mut stacks = HashMap::new();
         for name in locations.iter() {
             let (send, recv) = unbounded();
-            bufs.insert(name.clone(), (send, recv));
+            channels.insert(name.clone(), (send, recv));
         }
-        Memory { bufs }
+        Memory { channels, stacks }
     }
 
     pub fn pop(&mut self, location: Var) -> FcmcClosure {
-        self.bufs
-            .get(&location)
-            .expect("No location exists with specified name")
-            .1
-            .recv()
-            .expect("Failed to pop from location")
+        if location.starts_with("~") {
+            // channels start with ~
+            self.channels
+                .get(&location)
+                .expect("No location exists with specified name")
+                .1
+                .recv()
+                .expect("Failed to pop from location")
+        } else {
+            self.stacks
+                .get_mut(&location)
+                .ok_or("Specified location doesn't exist".to_string())
+                .unwrap()
+                .pop()
+                .ok_or(
+                    "Term cannot be executed. Pop action encountered but local stack is empty."
+                        .to_string(),
+                )
+                .unwrap()
+        }
     }
 
-    fn pop_all(&self, location: Var) -> Vec<FcmcClosure> {
-        self.bufs
-            .get(&location)
-            .expect("No location exists with specified name")
-            .1
-            .try_iter()
-            .collect()
+    fn pop_all(&mut self, location: Var) -> Vec<FcmcClosure> {
+        if location.starts_with("~") {
+            self.channels
+                .get(&location)
+                .expect("No location exists with specified name")
+                .1
+                .try_iter()
+                .collect()
+        } else {
+            // the result of .drain() is reversed because it goes from the bottom of the stack to the top
+            self.stacks
+                .get_mut(&location)
+                .ok_or("Specified location doesn't exist".to_string())
+                .unwrap()
+                .drain(..)
+                .rev()
+                .collect()
+        }
     }
 
     pub fn push(&mut self, location: Var, closure: FcmcClosure) {
-        self.bufs
-            .get(&location)
-            // .expect("No location exists with specified name")
-            .unwrap_or_else(|| panic!("No location exists with specified name: {location}"))
-            .0
-            .send(closure)
-            .expect("Failed to push to location")
+        if location.starts_with("~") {
+            self.channels
+                .get(&location)
+                .unwrap_or_else(|| panic!("No location exists with specified name: {location}"))
+                .0
+                .send(closure)
+                .expect("Failed to push to location")
+        } else {
+            self.stacks.entry(location).or_default().push(closure);
+        }
     }
 
     pub fn is_empty(&self, location: Var) -> bool {
-        self.bufs
-            .get(&location)
-            .expect("No location exists with specified name")
-            .1
-            .is_empty()
+        if location.starts_with("~") {
+            self.channels
+                .get(&location)
+                .expect("No location exists with specified name")
+                .1
+                .is_empty()
+        } else {
+            location.is_empty()
+        }
     }
 
     fn readback(&mut self) -> Vec<(Var, FcmcTerm)> {
         let mut res = vec![];
-        for name in self.bufs.keys() {
+        for name in self.channels.clone().keys() {
+            let closures = self.pop_all(name.clone());
+            for closure in closures {
+                res.push((name.clone(), closure.retrieve_term()));
+            }
+        }
+        for name in self.stacks.clone().keys() {
             let closures = self.pop_all(name.clone());
             for closure in closures {
                 res.push((name.clone(), closure.retrieve_term()));
@@ -382,7 +427,7 @@ impl FcmcProgramState {
     }
 
     pub fn run(term: FcmcTerm) -> Vec<(Var, FcmcTerm)> {
-        let locations = term.location_scan();
+        let locations = term.channel_scan();
         let memory = Memory::new(locations);
         let mut state = FcmcProgramState::start(term, memory);
         state
@@ -410,16 +455,32 @@ impl fmt::Display for FcmcProgramState {
         // closure
         write!(f, "({}, ", self.main_thread.closure)?;
         // memory
-        if self.main_thread.memory.bufs.is_empty() {
+        if self.main_thread.memory.channels.is_empty() && self.main_thread.memory.stacks.is_empty()
+        {
             write!(f, "[], ")?;
         } else {
-            for location in &self.main_thread.memory.bufs {
+            for location in &self.main_thread.memory.channels {
                 if self.main_thread.memory.is_empty(location.0.clone()) {
                     write!(f, "{}[], ", location.0)?;
                 } else {
                     write!(f, "{}[", location.0)?;
                     let len = location.1 .1.len();
                     for (i, t) in location.1 .1.try_iter().enumerate() {
+                        write!(f, "({})", t)?;
+                        if i < len - 1 {
+                            write!(f, ", ")?;
+                        }
+                    }
+                    write!(f, "], ")?;
+                }
+            }
+            for (id, location) in &self.main_thread.memory.stacks {
+                if location.is_empty() {
+                    write!(f, "{}[], ", id)?;
+                } else {
+                    write!(f, "{}[", id)?;
+                    let len = location.len();
+                    for (i, t) in location.iter().rev().enumerate() {
                         write!(f, "({})", t)?;
                         if i < len - 1 {
                             write!(f, ", ")?;
@@ -452,7 +513,7 @@ mod tests {
     #[test]
     fn prints_term() {
         let term = FcmcTerm::term1();
-        let s = FcmcProgramState::start(term.clone(), Memory::new(term.location_scan()))
+        let s = FcmcProgramState::start(term.clone(), Memory::new(term.channel_scan()))
             .main_thread
             .closure
             .term;
