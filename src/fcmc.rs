@@ -517,14 +517,18 @@ mod tests {
             .main_thread
             .closure
             .term;
-        assert_eq!(s.to_string(), "{[[x]out]a}.a<y>.y");
+        assert_eq!(s.to_string(), "{[[x]~out]~a}.~a<y>.y");
     }
 
     #[test]
     fn spawn_thread() {
         let fork_term = FcmcTerm::new_fork(
-            FcmcTerm::new_push(FcmcTerm::new_variable("x"), "a".to_string(), FcmcTerm::Skip),
-            FcmcTerm::new_pop("a".to_string(), "y", FcmcTerm::Skip),
+            FcmcTerm::new_push(
+                FcmcTerm::new_variable("x"),
+                "~a".to_string(),
+                FcmcTerm::Skip,
+            ),
+            FcmcTerm::new_pop("~a".to_string(), "y", FcmcTerm::Skip),
         );
         let ans = FcmcProgramState::run(fork_term);
         assert_eq!(ans, vec![]);
@@ -533,7 +537,7 @@ mod tests {
     #[test]
     fn run_term1() {
         let ans = FcmcProgramState::run(FcmcTerm::term1());
-        let expected = ("out".to_string(), FcmcTerm::new_variable("x"));
+        let expected = ("~out".to_string(), FcmcTerm::new_variable("x"));
         assert_eq!(ans, vec![expected]);
     }
 
@@ -547,7 +551,7 @@ mod tests {
     #[test]
     fn run_term3() {
         let ans = FcmcProgramState::run(FcmcTerm::term3());
-        let expected = ("out".to_string(), FcmcTerm::new_variable("x"));
+        let expected = ("~out".to_string(), FcmcTerm::new_variable("x"));
         assert_eq!(ans, vec![expected]);
     }
 }
