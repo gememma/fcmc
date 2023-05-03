@@ -215,7 +215,7 @@ impl fmt::Display for FcmcClosure {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Memory {
     channels: HashMap<Var, (Sender<FcmcClosure>, Receiver<FcmcClosure>)>,
     stacks: HashMap<Var, Vec<FcmcClosure>>,
@@ -317,6 +317,17 @@ impl Memory {
             }
         }
         res
+    }
+}
+
+impl Clone for Memory {
+    fn clone(&self) -> Self {
+        // when Memory is cloned for a new thread, channels should be clones but stacks need
+        // to be empty, since they are thread local
+        Memory {
+            channels: self.channels.clone(),
+            stacks: HashMap::new(),
+        }
     }
 }
 
