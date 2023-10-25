@@ -20,12 +20,14 @@ pub mod sam;
 
 lalrpop_mod!(pub parser);
 
+/// Contains the argument (FCMC term as a ['String']) provided to the parser
 #[derive(Parser)]
 struct Args {
     /// Raw term to run
     input: String,
 }
 
+/// Ask for ['String'] input from stdin and run the machine on the resulting ['FcmcTerm']
 pub fn run_parser() {
     println!("\nInput a term: ");
     let mut input = String::new();
@@ -38,12 +40,14 @@ pub fn run_parser() {
     FcmcProgramState::run(parsed);
 }
 
+/// Run an example FCMC term ({[[x]~out]~a}.~a<y>.y) on the machine
 pub fn run_example() {
     println!("\n{}", FcmcTerm::term1());
     FcmcProgramState::run(FcmcTerm::term1());
     println!("");
 }
 
+/// Print instructions for using the application
 pub fn print_help() {
     println!("\nTo see an example of a term, choose option 2 in the menu.");
     println!("When you run a term, it will print out the term and then run it.");
