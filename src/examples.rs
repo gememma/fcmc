@@ -1,3 +1,4 @@
+/// A list of examples for various types of term, state and closure for use in testing
 use crate::fcmc::FcmcTerm;
 use crate::fmc::{FmcClosure, FmcTerm};
 use crate::kam::{Closure, State};
